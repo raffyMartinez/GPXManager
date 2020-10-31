@@ -19,6 +19,8 @@ namespace GPXManager.entities.mapping
             AOICollection.CollectionChanged += AOICollection_CollectionChanged;
         }
 
+
+
         private void AOICollection_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
             switch (e.Action)

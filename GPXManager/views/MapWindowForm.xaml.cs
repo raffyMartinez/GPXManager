@@ -6,6 +6,7 @@ using MapWinGIS;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Drawing;
 using System.Linq;
 using System.Net.Mail;
 using System.Text;
@@ -35,8 +36,6 @@ namespace GPXManager.views
 
         private static MapWindowForm  _instance;
 
-        private MapInterActionHandler _mapInterActionHandler;
-        private MapLayersHandler _mapLayersHandler;
         public AxMapWinGIS.AxMap MapControl { get; set; }
         public MapWindowForm()
         {
@@ -44,14 +43,8 @@ namespace GPXManager.views
             Closing += OnWindowClosing;
         }
 
-        public MapInterActionHandler MapInterActionHandler
-        {
-            get { return _mapInterActionHandler; }
-        }
-        public MapLayersHandler MapLayersHandler 
-        {
-            get { return _mapLayersHandler; }
-        }
+        public MapInterActionHandler MapInterActionHandler { get; private set; }
+        public MapLayersHandler MapLayersHandler { get; private set; }
         public static MapWindowForm GetInstance()
         {
             if (_instance == null) _instance = new MapWindowForm();
@@ -62,7 +55,12 @@ namespace GPXManager.views
             _instance = null;
             MapWindowManager.CleanUp();
             this.SavePlacement();
+
+            Entities.GPXFileViewModel.RemoveAllFromMap();
+            ParentWindow.ResetDataGrids();
         }
+
+
 
         public GPXFile GPXFile { get; set; }
         public MainWindow ParentWindow { get; set; }
@@ -74,13 +72,16 @@ namespace GPXManager.views
             host.Child = MapControl;
             MapGrid.Children.Add(host);
 
-            _mapLayersHandler = new MapLayersHandler(MapControl);
-            _mapInterActionHandler = new MapInterActionHandler(MapControl, _mapLayersHandler);
+            MapLayersHandler = new MapLayersHandler(MapControl);
+            MapInterActionHandler = new MapInterActionHandler(MapControl, MapLayersHandler);
             MapControl.ZoomBehavior = tkZoomBehavior.zbDefault;
             MapWindowManager.RestoreMapState(this);
             menuMapTilesVisible.IsChecked = MapControl.TileProvider != tkTileProvider.ProviderNone;
             menuMapTilesSelectProvider.IsEnabled = MapControl.TileProvider != tkTileProvider.ProviderNone;
             menuMapCoastlineVisible.IsChecked = MapLayersHandler.get_MapLayer("Coastline").Visible;
+            MapWindowManager.ResetCursor();
+
+            
         }
 
 
@@ -92,14 +93,11 @@ namespace GPXManager.views
         }
         private void SelectTileProvider()
         {
-            //if (MapControl.TileProvider != tkTileProvider.ProviderNone)
-            //{
-                SelectTileProviderWindow stpw = new SelectTileProviderWindow();
-                if (stpw.ShowDialog() == true)
-                {
-                    MapControl.TileProvider = (tkTileProvider)Enum.Parse(typeof(tkTileProvider), stpw.TileProviderID.ToString());
-                }
-            //}
+            SelectTileProviderWindow stpw = new SelectTileProviderWindow();
+            if (stpw.ShowDialog() == true)
+            {
+                MapControl.TileProvider = (tkTileProvider)Enum.Parse(typeof(tkTileProvider), stpw.TileProviderID.ToString());
+            } 
         }
         private void OnMenuClick(object sender, RoutedEventArgs e)
         {
@@ -161,5 +159,83 @@ namespace GPXManager.views
                     break;
             }
         }
+
+        private void ToBeImplemented(string usage)
+        {
+            System.Windows.MessageBox.Show($"The {usage} functionality is not yet implemented", "Placeholder and not yet working", MessageBoxButton.OK, MessageBoxImage.Information); ;
+        }
+
+        private void OnToolbarButtonClick(object sender, RoutedEventArgs e)
+        {
+            tkCursorMode cursorMode = tkCursorMode.cmNone;
+            tkCursor cursor = tkCursor.crsrArrow;
+            switch(((System.Windows.Controls.Button)sender).Name)
+            {
+                case "buttonExit":
+                    Close();
+                    break;
+                case "buttonRuler":
+                    cursorMode = tkCursorMode.cmMeasure;
+                    cursor = tkCursor.crsrCross;
+                    break;
+                case "buttonPan":
+                    cursorMode = tkCursorMode.cmPan;
+                    cursor = tkCursor.crsrSizeAll;
+                    break;
+                case "buttonZoomPlus":
+                    cursorMode = tkCursorMode.cmZoomIn;
+                    cursor = tkCursor.crsrCross;
+                    MakeCursor("zoom_plus");
+                    break;
+                case "buttonZoomMinus":
+                    cursorMode = tkCursorMode.cmZoomOut;
+                    cursor = tkCursor.crsrCross;
+                    break;
+                case "buttonSelect":
+                    cursorMode = tkCursorMode.cmSelection;
+                    cursor = tkCursor.crsrHand;
+                    break;
+                case "buttonSelectNone":
+                    MapLayersHandler.ClearAllSelections();
+                    break;
+                case "buttonAttributes":
+                    if (MapLayersHandler.MapHasSelection)
+                    {
+                        var saw = new ShapeFileAttributesWindow();
+                        saw.ShowShapeFileAttribute(MapWindowManager.MapLayersHandler.CurrentMapLayer.LayerObject as Shapefile);
+                        saw.Owner = this;
+                        saw.Show();
+                    }
+                    break;
+                case "buttonGears":
+                    ToBeImplemented("mapping options");
+                    break;
+                case "buttonUploadCloud":
+                    ToBeImplemented("upload to cloud");
+                    break;
+                case "buttonCalendar":
+                    ToBeImplemented("calendar");
+                    break;
+                case "buttonArchive":
+                    ToBeImplemented("archive");
+                    break;
+                case "buttonTrack":
+                    ToBeImplemented("track");
+                    break;
+                case "buttonGPS":
+                    ToBeImplemented("gps");
+                    break;
+                case "buttonLayers":
+                    ToBeImplemented("manage layers");
+                    break;
+                case "buttonAddLayer":
+                    ToBeImplemented("add a layer");
+                    break;
+
+            }
+            MapControl.CursorMode = cursorMode;
+            MapControl.MapCursor = cursor;
+        }
+
     }
 }

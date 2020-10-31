@@ -63,7 +63,7 @@ namespace GPXManager.entities.mapping.Views
         }
         private void OnWindowClosing(object sender, CancelEventArgs e)
         {
-
+            MapWindowManager.ResetCursor();
         }
 
         private void OnWindowLoaded(object sender, RoutedEventArgs e)
@@ -75,6 +75,7 @@ namespace GPXManager.entities.mapping.Views
             switch(((Button)sender).Name)
             {
                 case "buttonCancel":
+                    MapWindowManager.MapLayersHandler.RemoveLayer(AOIManager._hAOI);
                     Close();
                     break;
                 case "buttonOk":

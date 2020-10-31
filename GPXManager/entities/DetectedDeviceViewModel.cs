@@ -74,24 +74,33 @@ namespace GPXManager.entities
                             "'} WHERE AssocClass = Win32_LogicalDiskToPartition").Get())
 
                         {
-
-                            var dsk = new Disk
+                            Disk dsk = null;
+                            try
                             {
-                                Caption = disk.Properties["Caption"].Value.ToString(),
-                                Compressed = bool.Parse(disk.Properties["Compressed"].Value.ToString()),
-                                Description = disk.Properties["Description"].Value.ToString(),
-                                //FreeSpace = long.Parse(drive.Properties["FreeSpace"].Value.ToString()),
-                                Size = long.Parse(drive.Properties["Size"].Value.ToString()),
-                                DeviceID = disk.Properties["DeviceID"].Value.ToString(),
-                                FileSystem = disk.Properties["FileSystem"].Value.ToString(),
-                                VolumeSerialNumber = disk.Properties["VolumeSerialNumber"].Value.ToString(),
-                                VolumeName = disk.Properties["VolumeName"].Value.ToString()
-                            };
+                                dsk = new Disk
+                                {
+                                    Caption = disk.Properties["Caption"].Value.ToString(),
+                                    Compressed = bool.Parse(disk.Properties["Compressed"].Value.ToString()),
+                                    Description = disk.Properties["Description"].Value.ToString(),
+                                    //FreeSpace = long.Parse(drive.Properties["FreeSpace"].Value.ToString()),
+                                    Size = long.Parse(drive.Properties["Size"].Value.ToString()),
+                                    DeviceID = disk.Properties["DeviceID"].Value.ToString(),
+                                    FileSystem = disk.Properties["FileSystem"].Value.ToString(),
+                                    VolumeSerialNumber = disk.Properties["VolumeSerialNumber"].Value.ToString(),
+                                    VolumeName = disk.Properties["VolumeName"].Value.ToString()
+                                };
+                            }
+                            catch(Exception ex)
+                            {
+                                Logger.Log(ex);
+                                dsk = null;
+                            }
                             if (device.Disks == null)
                             {
                                 device.Disks = new List<Disk>();
                             }
                             device.Disks.Add(dsk);
+
                         }
                     }
                     AddDevice(device);

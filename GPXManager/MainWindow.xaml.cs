@@ -29,6 +29,7 @@ using System.Data;
 using System.Diagnostics;
 using System.Runtime.Remoting.Messaging;
 using GPXManager.entities.mapping;
+using MapWinGIS;
 
 namespace GPXManager
 {
@@ -61,6 +62,10 @@ namespace GPXManager
             Closing += OnWindowClosing;
             _usbGPSPresent = false;
         }
+        public void ResetDataGrids()
+        {
+            dataGridGPXFiles.Items.Refresh();
+        }
 
         private void OnWindowClosing(object sender, CancelEventArgs e)
         {
@@ -68,6 +73,7 @@ namespace GPXManager
             {
                 Entities.DeviceWaypointGPXViewModel.SaveDeviceGPXToRepository();
             }
+
         }
 
         private void SetupEntities()
@@ -133,7 +139,7 @@ namespace GPXManager
             if(Debugger.IsAttached)
             {
                 menuClearTables.Visibility = Visibility.Visible;
-                menuMapper.Visibility = Visibility.Visible;
+                //menuMapper.Visibility = Visibility.Visible;
             }
         }
 
@@ -324,15 +330,53 @@ namespace GPXManager
             }
         }
 
-        private void ShowGPXOnMap()
+        private void SetGPXFileMenuMapVisibility(bool hideMapVisibilityMenu, bool refreshGrid = true)
         {
-           string coastLineFile = $@"{globalMapping.ApplicationPath}\Layers\Coastline\philippines_polygon.shp";
-           MapWindowManager.OpenMapWindow(this, coastLineFile);
-           MapWindowManager.MapGPX(_gpxFile);
-            if(MapWindowManager.Coastline==null)
+            if(hideMapVisibilityMenu)
+            {
+                menuGPXMap.Visibility = Visibility.Collapsed;
+                menuGPXRemoveFromMap.Visibility = Visibility.Visible;
+
+            }
+            else
+            {
+                menuGPXMap.Visibility = Visibility.Visible;
+                menuGPXRemoveFromMap.Visibility = Visibility.Collapsed;
+            }
+
+            if (refreshGrid)
+            {
+                dataGridGPXFiles.Items.Refresh();
+            }
+        }
+        private void ShowGPXOnMap(bool showInMap = true)
+        {
+            int h = -1;
+            string coastLineFile = $@"{globalMapping.ApplicationPath}\Layers\Coastline\philippines_polygon.shp";
+            MapWindowManager.OpenMapWindow(this, coastLineFile);
+            if (MapWindowManager.Coastline == null)
             {
                 MapWindowManager.LoadCoastline(coastLineFile);
             }
+
+
+            if (dataGridGPXFiles.SelectedItems.Count > 1)
+            {
+                foreach(var item in dataGridGPXFiles.SelectedItems)
+                {
+                    GPXFile gpxFile = (GPXFile)item; 
+                    h = MapWindowManager.MapGPX(gpxFile);
+                    gpxFile.LayerHandle = h;
+                    gpxFile.ShownInMap = showInMap;
+                }
+            }
+            else
+            {
+                h = MapWindowManager.MapGPX(_gpxFile);
+                _gpxFile.LayerHandle = h;
+                _gpxFile.ShownInMap = showInMap;
+            }
+            SetGPXFileMenuMapVisibility(h > 0);
         }
         private void ShowGPXFileDetails()
         {
@@ -424,6 +468,11 @@ namespace GPXManager
             string menuName = ((MenuItem)sender).Name;
             switch(menuName)
             {
+                case "menuGPXRemoveFromMap":
+                    _gpxFile.ShownInMap = false;
+                    MapWindowManager.MapLayersHandler.RemoveLayer(_gpxFile.LayerHandle);
+                    SetGPXFileMenuMapVisibility(false);
+                    break;
                 case "menuGPXMap":
                     ShowGPXOnMap();
                     break;
@@ -687,9 +736,9 @@ namespace GPXManager
             col.Binding.StringFormat = "MMM-dd-yyyy HH:mm";
             dataGridGPXFiles.Columns.Add(col);
 
-            dataGridGPXFiles.Columns.Add(new DataGridTextColumn { Header = "Waypoint count", Binding = new Binding("WaypointCount") });
-            dataGridGPXFiles.Columns.Add(new DataGridTextColumn { Header = "Track count", Binding = new Binding("TrackCount") });
-            dataGridGPXFiles.Columns.Add(new DataGridTextColumn { Header = "Track points count", Binding = new Binding("TrackPointsCount") });
+            dataGridGPXFiles.Columns.Add(new DataGridTextColumn { Header = "Waypoints", Binding = new Binding("WaypointCount") });
+            dataGridGPXFiles.Columns.Add(new DataGridTextColumn { Header = "Tracks", Binding = new Binding("TrackCount") });
+            dataGridGPXFiles.Columns.Add(new DataGridTextColumn { Header = "Track points", Binding = new Binding("TrackPointsCount") });
             dataGridGPXFiles.Columns.Add(new DataGridTextColumn { Header = "Track time span (HHH:MM)", Binding = new Binding("TimeSpanHourMinute") });
 
             col = new DataGridTextColumn()
@@ -701,6 +750,7 @@ namespace GPXManager
             dataGridGPXFiles.Columns.Add(col);
 
             dataGridGPXFiles.Columns.Add(new DataGridTextColumn { Header = "Date range", Binding = new Binding("DateRange") });
+            dataGridGPXFiles.Columns.Add(new DataGridCheckBoxColumn { Header = "Mapped", Binding = new Binding("ShownInMap") });
 
 
 
@@ -1088,8 +1138,6 @@ namespace GPXManager
                     _selectedTrip = (Trip)dataGridGPSSummary.SelectedItem;
                     if (_selectedTrip != null)
                     {
-                        //_selectedTrip.GPS = _gps;
-
                         Entities.TripViewModel.GetTrip(_selectedTrip.TripID);
                         ShowTripWaypoints(fromGPSSummary:true);
                     }
@@ -1117,6 +1165,16 @@ namespace GPXManager
                         _gpxFile = (GPXFile)dataGridGPXFiles.SelectedItem;
                         _isTrackGPX = _gpxFile.TrackCount > 0;
                         buttonGPXDetails.IsEnabled = true;
+                        SetGPXFileMenuMapVisibility(_gpxFile.ShownInMap, false);
+
+                        MapWindowManager.MapLayersHandler?.ClearAllSelections();
+
+                        if(_gpxFile.ShownInMap)
+                        {
+                            var currentLayer =  MapWindowManager.MapLayersHandler.set_MapLayer(_gpxFile.LayerHandle);
+                            MapWindowManager.MapLayersHandler.MakeLayerSelected(currentLayer);
+                        }
+
                     }
                     break;
             }

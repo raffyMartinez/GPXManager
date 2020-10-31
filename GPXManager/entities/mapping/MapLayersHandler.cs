@@ -246,7 +246,24 @@ namespace GPXManager.entities.mapping
                     break;
             }
         }
-
+        public bool MapHasSelection
+        {
+            get
+            {
+                foreach(var item in MapLayerDictionary.Values)
+                {
+                    if(item.LayerType=="ShapefileClass")
+                    {
+                        var sf = item.LayerObject as Shapefile;
+                        if(sf.NumSelected>0)
+                        {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
+        }
         public void VisibilityExpression(string expression, VisibilityExpressionTarget expressiontarget)
         {
             if (expressiontarget == VisibilityExpressionTarget.ExpressionTargetLabel)
@@ -307,7 +324,7 @@ namespace GPXManager.entities.mapping
             get { return MapLayerDictionary.Count; }
         }
 
-        public void set_MapLayer(int layerHandle, bool noSelectedShapes = true, bool refreshLayerList = false)
+        public MapLayer set_MapLayer(int layerHandle, bool noSelectedShapes = true, bool refreshLayerList = false)
         {
             _currentMapLayer = MapLayerDictionary[layerHandle];
             if (_currentMapLayer.LayerType == "ShapefileClass")
@@ -332,6 +349,7 @@ namespace GPXManager.entities.mapping
             {
                 RefreshLayers();
             }
+            return _currentMapLayer;
         }
 
         public MapLayer get_MapLayer(string Name)
@@ -489,16 +507,17 @@ namespace GPXManager.entities.mapping
         /// Remove a layer using layer name
         /// </summary>
         /// <param name="layerName"></param>
-        public void RemoveLayer(string layerName)
+        public bool  RemoveLayer(string layerName)
         {
             foreach (var item in MapLayerDictionary)
             {
                 if (item.Value.Name == layerName)
                 {
                     RemoveLayer(item.Key);
-                    break;
+                    return true;
                 }
             }
+            return false;
         }
 
         /// <summary>
@@ -768,8 +787,13 @@ namespace GPXManager.entities.mapping
         /// </summary>
         /// <param name="sf"></param>
         /// <returns></returns>
-        public int AddLayer(Shapefile sf, string layerName = "", bool isVisible = true, bool uniqueLayer = false, fad3MappingMode mappingMode = fad3MappingMode.defaultMode, string layerKey="")
+        public int AddLayer(Shapefile sf, string layerName = "", bool isVisible = true, bool uniqueLayer = false, 
+            fad3MappingMode mappingMode = fad3MappingMode.defaultMode, string layerKey="", bool rejectIfExisting=false)
         {
+            if(rejectIfExisting && layerName.Length>0 &&  Exists(layerName))
+            {
+                return get_MapLayer(layerName).Handle;
+            }
             if (uniqueLayer)
             {
                 RemoveLayer(layerName);
@@ -864,8 +888,15 @@ namespace GPXManager.entities.mapping
         /// <param name="showInLayerUI"></param>
         /// <param name="layerHandle"></param>
         /// <returns></returns>
-        public int AddLayer(object layer, string layerName, bool visible, bool showInLayerUI, string fileName = "", fad3MappingMode mappingMode = fad3MappingMode.defaultMode, string layerKey="")
+        public int AddLayer(object layer, string layerName, bool visible, bool showInLayerUI, string fileName = "", 
+            fad3MappingMode mappingMode = fad3MappingMode.defaultMode, string layerKey="",bool rejectIfExisting=false)
         {
+
+            if (rejectIfExisting && layerName.Length > 0 && Exists(layerName))
+            {
+                return get_MapLayer(layerName).Handle;
+            }
+
             int h = 0;
             GeoProjection gp = new GeoProjection();
 
@@ -1052,6 +1083,22 @@ namespace GPXManager.entities.mapping
 
         private void OnMapLayerAdded(object sender, _DMapEvents_LayerAddedEvent e)
         {
+        }
+
+        public void MakeLayerSelected(MapLayer mapLayer)
+        {
+            switch(mapLayer.LayerType)
+            {
+                case "ShapefileClass":
+                    Shapefile currentShapefile = (Shapefile)mapLayer.LayerObject;
+                    currentShapefile.SelectionAppearance = tkSelectionAppearance.saDrawingOptions;
+                    currentShapefile.SelectionDrawingOptions.LineWidth = 3;
+                    currentShapefile.SelectAll();
+                    
+                    break;
+
+            }
+            MapControl.Redraw();
         }
     }
 }

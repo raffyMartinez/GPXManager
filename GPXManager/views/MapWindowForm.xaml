@@ -7,19 +7,20 @@
         mc:Ignorable="d"
         Loaded="OnWindowLoaded"
         Title="Map" Height="450" Width="800">
-    <Grid>
+    <Grid Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
         <Grid.RowDefinitions>
             <RowDefinition Height="30"/>
-            <RowDefinition Height="30"/>
+            <RowDefinition Height="34" />
             <RowDefinition/>
         </Grid.RowDefinitions>
+
         <Menu VerticalAlignment="Center">
             <MenuItem Header="File">
                 <MenuItem Header="Layers">
                     <MenuItem Header="Add ..." x:Name="menuAddLayer" Click="OnMenuClick"/>
                     <MenuItem Header="Add coastline ..." x:Name="menuAddLayerCoastline" Click="OnMenuClick"/>
                     <MenuItem Header="Add LGU boundary ..." x:Name="menuAddLayerBoundaryLGU" Click="OnMenuClick"/>
-                    <MenuItem Header="Add LGU poblacion ..." x:Name="menuAddLayerBoundaryLGUPoblacion" Click="OnMenuClick"/>                    
+                    <MenuItem Header="Add LGU poblacion ..." x:Name="menuAddLayerBoundaryLGUPoblacion" Click="OnMenuClick"/>
                     <MenuItem Header="Add barangay boundary ..." x:Name="menuAddLayerBoundaryBarangay" Click="OnMenuClick"/>
                     <MenuItem Header="Add island names ..." x:Name="menuAddLayerIslandNames" Click="OnMenuClick"/>
                     <MenuItem Header="Add reef area ..." x:Name="menuAddLayerReef" Click="OnMenuClick"/>
@@ -42,9 +43,63 @@
                 <MenuItem Header="Label islands" x:Name="menuIslandLabels" Click="OnMenuClick"/>
             </MenuItem>
         </Menu>
-        <ToolBar Grid.Row="1">
-            
-        </ToolBar>
-        <Grid x:Name="MapGrid" Grid.Row="2"/>
+
+        <ToolBarTray Grid.Row="1" Height="34">
+            <ToolBar Height="32" Width="Auto" >
+                <Button x:Name="buttonLayers" Click="OnToolbarButtonClick">
+                    <Image Source="layers1.png" />
+                </Button>
+                <Button x:Name="buttonAddLayer" Click="OnToolbarButtonClick">
+                    <Image Source="layers-new1.png"  />
+                </Button>
+                <Button x:Name="buttonZoomPlus" Click="OnToolbarButtonClick">
+                    <Image Source="zoom+.png" OpacityMask="White" />
+                </Button>
+                <Button x:Name="buttonZoomMinus" Click="OnToolbarButtonClick">
+                    <Image Source="zoom-.png" OpacityMask="White" />
+                </Button >
+                <Button x:Name="buttonPan" Click="OnToolbarButtonClick">
+                    <Image Source="move.png" OpacityMask="White" />
+                </Button >
+                <Button x:Name="buttonAttributes" Click="OnToolbarButtonClick">
+                    <Image Source="table1.png" OpacityMask="White" />
+                </Button>
+                <Button x:Name="buttonGPS" Click="OnToolbarButtonClick">
+                    <Image Source="gps2.png" OpacityMask="White" />
+                </Button>
+                <Button x:Name="buttonSelect" Click="OnToolbarButtonClick">
+                    <Image Source="select1.png" OpacityMask="White" />
+                </Button>
+                <Button x:Name="buttonSelectNone" Click="OnToolbarButtonClick">
+                    <Image Source="select_none1.png" OpacityMask="White" />
+                </Button>
+                <Button x:Name="buttonTrack" Click="OnToolbarButtonClick">
+                    <Image Source="track.png" OpacityMask="White" />
+                </Button>
+                <Button x:Name="buttonRuler" Click="OnToolbarButtonClick">
+                    <Image Source="ruler.png" OpacityMask="White" />
+                </Button>
+                <Button x:Name="buttonArchive" Click="OnToolbarButtonClick">
+                    <Image Source="archive.png" OpacityMask="White" />
+                </Button>
+                <Button x:Name="buttonCalendar" Click="OnToolbarButtonClick">
+                    <Image Source="calendar.png" OpacityMask="White" />
+                </Button>
+                <Button x:Name="buttonUploadCloud" Click="OnToolbarButtonClick">
+                    <Image Source="upload to cloud.png" OpacityMask="White" />
+                </Button>
+                <Button x:Name="buttonGears" Click="OnToolbarButtonClick">
+                    <Image Source="gears.png" OpacityMask="White" />
+                </Button>
+                <Button x:Name="buttonExit" Click="OnToolbarButtonClick">
+                    <Image Source="exit.png" OpacityMask="White" />
+                </Button>                
+
+
+            </ToolBar>
+        </ToolBarTray>
+        <Grid x:Name="MapGrid" Grid.Row="2">
+
+        </Grid>
     </Grid>
 </Window>

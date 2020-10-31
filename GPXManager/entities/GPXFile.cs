@@ -32,12 +32,12 @@ namespace GPXManager.entities
         public string DriveName { get; set; }
         public GPS GPS { get; set; }
         public List<WaypointLocalTime> TrackWaypoinsInLocalTime { get; internal set; } = new List<WaypointLocalTime>();
-
+        public int LayerHandle { get; set; }
         public List<WaypointLocalTime> NamedWaypointsInLocalTime { get; internal set; } = new List<WaypointLocalTime>();
 
         public bool SavedToDatabase { get; internal set; }
         public long Size { get; set; }
-
+        public bool ShownInMap { get; set; }
         public string DateRange { get; internal set; }
         public TimeSpan? TimeSpan { get; internal set; }
 

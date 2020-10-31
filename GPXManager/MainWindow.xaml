@@ -31,7 +31,7 @@
                 <Separator/>
                 <MenuItem Header="Settings" x:Name="menuOptions" Click="OnMenuClick" Visibility="Visible"/>
                 <MenuItem Header="Clear tables" x:Name="menuClearTables" Click="OnMenuClick" Visibility="Collapsed"/>
-                <MenuItem Header="Map" x:Name="menuMapper" Click="OnMenuClick" Visibility="Collapsed"/>
+                <MenuItem Header="Map" x:Name="menuMapper" Click="OnMenuClick" Visibility="Visible"/>
             </MenuItem>
         </Menu>
 
@@ -83,6 +83,7 @@
                                 <MenuItem Header="Add trip based on track" Click="OnMenuClick" x:Name="menuAddTripFromTRack" Visibility="Visible"/>
                                 <MenuItem Header="Details" Click="OnMenuClick" x:Name="menuGPXFileDetails" Visibility="Visible"/>
                                 <MenuItem Header="Show in map" Click="OnMenuClick" x:Name="menuGPXMap" Visibility="Visible"/>
+                                <MenuItem Header="Remove from map" Click="OnMenuClick" x:Name="menuGPXRemoveFromMap" Visibility="Collapsed"/>
                             </ContextMenu>
                         </DataGrid.ContextMenu>
                     </DataGrid>

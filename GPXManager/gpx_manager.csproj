@@ -14,6 +14,7 @@
     <WarningLevel>4</WarningLevel>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -26,7 +27,6 @@
     <MapFileExtensions>true</MapFileExtensions>
     <ApplicationRevision>0</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
-    <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
@@ -140,6 +140,9 @@
     <Compile Include="entities\mapping\Views\SelectTileProviderWindow.xaml.cs">
       <DependentUpon>SelectTileProviderWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="entities\mapping\Views\ShapeFileAttributesWindow.xaml.cs">
+      <DependentUpon>ShapeFileAttributesWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="entities\PrettyXML.cs" />
     <Compile Include="entities\SerializeGear.cs" />
     <Compile Include="entities\SerializeGPS.cs" />
@@ -174,6 +177,9 @@
     <Compile Include="views\GPXFIlePropertiesWindow.xaml.cs">
       <DependentUpon>GPXFIlePropertiesWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="views\MapWindowForm.IconInfo.cs">
+      <DependentUpon>MapWindowForm.xaml</DependentUpon>
+    </Compile>
     <Compile Include="views\MapWindowForm.xaml.cs">
       <DependentUpon>MapWindowForm.xaml</DependentUpon>
     </Compile>
@@ -185,6 +191,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="entities\mapping\Views\SelectTileProviderWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="entities\mapping\Views\ShapeFileAttributesWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -263,7 +273,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
     <EmbeddedResource Include="Properties\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
+      <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <None Include="packages.config" />
@@ -279,7 +289,7 @@
     <Resource Include="gpx_icon.ico" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\gpx_icon.ico" />
+    <Resource Include="Resources\gpx_icon.ico" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.7.2">
@@ -313,6 +323,95 @@
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </COMReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Images\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\layers.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\new layer.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\layers new.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="zoom+.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\zoom+.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\gps2.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="views\layers.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="views\layers new.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="views\zoom+.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="views\zoom-.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="views\move.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="views\table.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="views\gps2.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="views\select.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="views\select_none.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\select_none1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="views\select_none1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="views\select1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="views\table1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="views\layers new1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="views\layers1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="views\layers-new1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="views\track.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="views\ruler.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="views\archive.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="views\calendar.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="views\upload to cloud.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="views\gears.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="views\exit.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

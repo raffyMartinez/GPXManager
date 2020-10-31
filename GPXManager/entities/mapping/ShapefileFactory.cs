@@ -21,7 +21,7 @@ namespace GPXManager.entities.mapping
         public static Shapefile AOIShapefileFromAOI(AOI aoi)
         {
             var sf = new Shapefile();
-            if (sf.CreateNew("", ShpfileType.SHP_POLYGON))
+            if (sf.CreateNewWithShapeID("", ShpfileType.SHP_POLYGON))
             {
                 var extent = new Extents();
                 extent.SetBounds(aoi.UpperLeftX, aoi.LowerRightY, 0, aoi.LowerRightX, aoi.UpperLeftY, 0);

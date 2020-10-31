@@ -36,6 +36,8 @@ namespace GPXManager.entities.mapping
             MapWindowForm = null; 
         }
 
+
+
         static MapWindowManager()
         {
             TileProviders.Add(0, "OpenStreetMap");
@@ -149,8 +151,15 @@ namespace GPXManager.entities.mapping
                                             break;
                                         case "aoi_boundary":
                                             var layerName = reader.GetAttribute("LayerName");
-                                            var aoi = Entities.AOIViewModel.GetAOI(layerName);
-                                            aoi.MapLayerHandle = MapWindowManager.MapLayersHandler.AddLayer(aoi.ShapeFile, aoi.Name, uniqueLayer:true, layerKey: "aoi_boundary");
+                                            if (Entities.AOIViewModel.Count > 0)
+                                            {
+                                                var aoi = Entities.AOIViewModel.GetAOI(layerName);
+                                                if (aoi != null)
+                                                {
+                                                    aoi.MapLayerHandle = MapWindowManager.MapLayersHandler.AddLayer(aoi.ShapeFile, aoi.Name, uniqueLayer: true, layerKey: "aoi_boundary");
+                                                    AOIManager.UpdateAOIName(aoi.MapLayerHandle, aoi.Name);
+                                                }
+                                            }
                                             break;
                                     }
                                     break; 
@@ -276,7 +285,7 @@ namespace GPXManager.entities.mapping
                 if (sf.Open(coastlineShapeFile_FileName))
                 {
                     sf.Key = "coastline";
-                    var h = MapLayersHandler.AddLayer(sf, "Coastline", uniqueLayer:true, isVisible:visible, layerKey: "coastline");
+                    var h = MapLayersHandler.AddLayer(sf, "Coastline", uniqueLayer:true, isVisible:visible, layerKey: "coastline", rejectIfExisting:true);
                     Coastline = sf;
                 }
             }
@@ -287,26 +296,44 @@ namespace GPXManager.entities.mapping
             MapWindowForm = null;
         }
 
-        public static void MapGPX(GPXFile gpxFile)
+        public static int MapGPX(GPXFile gpxFile, bool showInMap = true)
         {
             string layerKey = "";
-            if (gpxFile != null)
+            if (showInMap)
             {
-                Shapefile sf = null;
-                if (gpxFile.TrackCount > 0)
+                if (gpxFile != null)
                 {
-                    sf = ShapefileFactory.TrackFromGPX(gpxFile);
-                    sf.Key = "track";
-                    layerKey = "gpxfile_track";
+                    Shapefile sf = null;
+                    if (gpxFile.TrackCount > 0)
+                    {
+                        sf = ShapefileFactory.TrackFromGPX(gpxFile);
+                        var fldFIleName = sf.EditAddField("Filename", FieldType.STRING_FIELD, 1, 1);
+                        var fldLength = sf.EditAddField("Length", FieldType.DOUBLE_FIELD, 1, 1);
+                        sf.EditCellValue(fldFIleName, 0, gpxFile.FileName);
+                        sf.EditCellValue(fldLength, 0, gpxFile.TrackLength);
+                        sf.Key = "track";
+                        layerKey = "gpxfile_track";
+                    }
+                    else if (gpxFile.WaypointCount > 0)
+                    {
+                        sf = ShapefileFactory.NamedPointsFromGPX(gpxFile);
+                        sf.Key = "waypoint";
+                        layerKey = "gpxfile_waypoint";
+                    }
+                    return MapLayersHandler.AddLayer(sf, gpxFile.FileInfo.Name, uniqueLayer: true, layerKey: layerKey, rejectIfExisting: true);
                 }
-                else if (gpxFile.WaypointCount > 0)
+                else
                 {
-                    sf = ShapefileFactory.NamedPointsFromGPX(gpxFile);
-                    sf.Key = "waypoint";
-                    layerKey = "gpxfile_waypoint";
+                    return -1;
                 }
-                int h = MapLayersHandler.AddLayer(sf, gpxFile.FileInfo.Name,uniqueLayer:true,layerKey: layerKey);
-            };
+            }
+            else
+            {
+                var ly = MapLayersHandler.get_MapLayer(gpxFile.FileName);
+                MapLayersHandler.RemoveLayer(ly.Handle);
+                return -1;
+            }
+            
         }
     }
 }

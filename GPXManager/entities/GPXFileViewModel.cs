@@ -18,6 +18,13 @@ namespace GPXManager.entities
             GPXFileCollection.CollectionChanged += GPXFileCollection_CollectionChanged;
         }
 
+        public void RemoveAllFromMap()
+        {
+            foreach(var item in GPXFileCollection)
+            {
+                item.ShownInMap = false;
+            }
+        }
         public List<GPXFile>GetFiles(string deviceID)
         {
             if(GPXFileCollection.Where(t=>t.GPS.DeviceID==deviceID).ToList().Count==0)
