@@ -21,9 +21,26 @@ namespace GPXManager.entities.mapping.Views
     /// </summary>
     public partial class ShapeFileAttributesWindow : Window
     {
+        private static ShapeFileAttributesWindow _instance;
         public ShapeFileAttributesWindow()
         {
             InitializeComponent();
+            Closing += OnWindowClosing;
+        }
+        protected override void OnSourceInitialized(EventArgs e)
+        {
+            base.OnSourceInitialized(e);
+            this.ApplyPlacement();
+        }
+        private void OnWindowClosing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            this.SavePlacement();
+        }
+
+        public static ShapeFileAttributesWindow GetInstance()
+        {
+            if (_instance == null) _instance = new ShapeFileAttributesWindow();
+            return _instance;
         }
 
         private void OnButtonCLick(object sender, RoutedEventArgs e)
@@ -31,13 +48,15 @@ namespace GPXManager.entities.mapping.Views
             Close();
         }
 
-        public void ShowShapeFileAttribute(Shapefile sf)
+        public Shapefile ShapeFile { get; set; }
+
+        public void ShowShapeFileAttribute()
         {
             DataTable dt = new DataTable();
 
-            for(int y=0;y<sf.NumFields;y++)
+            for(int y=0;y< ShapeFile.NumFields;y++)
             {
-                Field fld = sf.Field[y];
+                Field fld = ShapeFile.Field[y];
                 string fieldCaption = fld.Name;
                 Type t = typeof(int);
                 switch (fld.Type)
@@ -60,17 +79,42 @@ namespace GPXManager.entities.mapping.Views
                 }
                 dt.Columns.Add(new DataColumn { Caption = fieldCaption, DataType = t,ColumnName = fieldCaption });
             }
-            for(int x=0;x<sf.NumShapes;x++)
+
+            DataRow row;
+            if (ShapeFile.NumSelected == 0)
             {
-                var row = dt.NewRow();
-                for(int z=0;z<sf.NumFields;z++)
+                for (int x = 0; x < ShapeFile.NumShapes; x++)
                 {
-                    row[z] = sf.CellValue[z, x];
+                    row = dt.NewRow();
+                    for (int z = 0; z < ShapeFile.NumFields; z++)
+                    {
+                        row[z] = ShapeFile.CellValue[z, x];
+                    }
+                    dt.Rows.Add(row);
                 }
-                dt.Rows.Add(row);
+            }
+            else
+            {
+                for (int x=0;x<ShapeFile.NumShapes;x++)
+                {
+                    if(ShapeFile.ShapeSelected[x])
+                    {
+                        row = dt.NewRow();
+                        for (int z=0; z<ShapeFile.NumFields;z++)
+                        {
+                            row[z] = ShapeFile.CellValue[z, x];
+                        }
+                        dt.Rows.Add(row);
+                    }
+                }
             }
 
             dataGridAttributes.DataContext = dt;
+        }
+
+        private void OnDataGridSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+
         }
     }
 }

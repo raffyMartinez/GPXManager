@@ -4,8 +4,10 @@ using System.Collections.Generic;
 
 namespace GPXManager.entities.mapping
 {
+
     public static class ShapefileFactory
     {
+        private static MapWinGIS.Utils _mapWinGISUtils = new MapWinGIS.Utils();
         public static List<WaypointLocalTime> WaypointsinLocalTine { get; set; }
 
         public static void ClearWaypoints()
@@ -33,25 +35,47 @@ namespace GPXManager.entities.mapping
             }
             return null;
         }
-        public static Shapefile TrackFromGPX(GPXFile gpxFile)
+        //public static Shapefile TrackFromGPX(GPXFile gpxFile, out int shpIndex)
+        public static Shapefile TrackFromGPX(GPXFile gpxFile, out List<int>handles)
         {
+            handles = new List<int>();
+            var shpIndex = -1;
+            Shapefile sf; ;
             if (gpxFile.TrackWaypoinsInLocalTime.Count > 0)
             {
-                Shapefile shpFile = new Shapefile();
-                if (shpFile.CreateNewWithShapeID("", ShpfileType.SHP_POLYLINE))
+                if (GPXMappingManager.TrackShapefile == null || GPXMappingManager.TrackShapefile.NumFields == 0)
                 {
-                    shpFile.GeoProjection = globalMapping.GeoProjection;
-                    var shp = new Shape();
-                    if (shp.Create(ShpfileType.SHP_POLYLINE))
+                    sf = new Shapefile();
+                    if (sf.CreateNewWithShapeID("", ShpfileType.SHP_POLYLINE))
                     {
-                        foreach (var wlt in gpxFile.TrackWaypoinsInLocalTime)
-                        {
-                            var shpIndex = shp.AddPoint(wlt.Longitude, wlt.Latitude);
-                        }
+                        sf.EditAddField("GPS", FieldType.STRING_FIELD, 1, 1);
+                        sf.EditAddField("Filename", FieldType.STRING_FIELD, 1, 1);
+                        sf.EditAddField("Length", FieldType.DOUBLE_FIELD, 1, 1);
+                        sf.Key = "gpxfile_track";
+                        sf.GeoProjection = GPXManager.entities.mapping.globalMapping.GeoProjection;
+                        GPXMappingManager.TrackShapefile = sf;
                     }
-                    shpFile.EditAddShape(shp);
                 }
-                return shpFile;
+                else
+                {
+                    sf = GPXMappingManager.TrackShapefile;
+                }
+
+                var shp = new Shape();
+                if (shp.Create(ShpfileType.SHP_POLYLINE))
+                {
+                    foreach (var wlt in gpxFile.TrackWaypoinsInLocalTime)
+                    {
+                        shp.AddPoint(wlt.Longitude, wlt.Latitude);
+                    }
+                }
+                shpIndex = sf.EditAddShape(shp);
+                handles.Add(shpIndex);
+                sf.EditCellValue(sf.FieldIndexByName["GPS"], shpIndex, gpxFile.GPS.DeviceName);
+                sf.EditCellValue(sf.FieldIndexByName["FileName"], shpIndex, gpxFile.FileName);
+                sf.EditCellValue(sf.FieldIndexByName["Length"], shpIndex, gpxFile.TrackLength);
+
+                return sf;
             }
             else
             {
@@ -59,27 +83,57 @@ namespace GPXManager.entities.mapping
             }
         }
 
-        public static Shapefile NamedPointsFromGPX(GPXFile gpxFile)
+        public static Shapefile NamedPointsFromGPX(GPXFile gpxFile, out List<int> shpIndexes)
         {
+            shpIndexes = new List<int>();
+            Shapefile sf;
             if (gpxFile.NamedWaypointsInLocalTime.Count > 0)
             {
-                Shapefile shpFile = new Shapefile();
-                if (shpFile.CreateNewWithShapeID("", ShpfileType.SHP_POINT))
+                if (GPXMappingManager.WaypointsShapefile == null || GPXMappingManager.WaypointsShapefile.NumFields == 0)
                 {
-                    shpFile.GeoProjection = globalMapping.GeoProjection;
-                    foreach (var wlt in gpxFile.NamedWaypointsInLocalTime)
+                    sf = new Shapefile();
+
+                    if (sf.CreateNewWithShapeID("", ShpfileType.SHP_POINT))
                     {
-                        var shp = new Shape();
-                        if (shp.Create(ShpfileType.SHP_POINT))
+                        sf.GeoProjection = globalMapping.GeoProjection;
+                        sf.Key = "gpxfile_waypoint";
+                        sf.EditAddField("Name", FieldType.STRING_FIELD, 1, 1);
+                        sf.EditAddField("TimeStamp", FieldType.DATE_FIELD, 1, 1);
+                        sf.EditAddField("GPS", FieldType.STRING_FIELD, 1, 1);
+                        sf.EditAddField("File name", FieldType.STRING_FIELD, 1, 1);
+                        GPXMappingManager.WaypointsShapefile = sf;
+                    }
+
+                }
+                else
+                {
+                    sf = GPXMappingManager.WaypointsShapefile;
+                }
+
+                foreach (var wlt in gpxFile.NamedWaypointsInLocalTime)
+                {
+                    var shp = new Shape();
+                    if (shp.Create(ShpfileType.SHP_POINT))
+                    {
+                        if (shp.AddPoint(wlt.Longitude, wlt.Latitude) >= 0)
                         {
-                           if(shp.AddPoint(wlt.Longitude, wlt.Latitude)>=0)
-                           {
-                                shpFile.EditAddShape(shp);
-                           }
+                            var shpIndex = sf.EditAddShape(shp);
+                            if (shpIndex >= 0)
+                            {
+                                sf.EditCellValue(sf.FieldIndexByName["Name"], shpIndex, wlt.Name);
+                                sf.EditCellValue(sf.FieldIndexByName["TimeStamp"], shpIndex, wlt.Time);
+                                sf.EditCellValue(sf.FieldIndexByName["GPS"], shpIndex, gpxFile.GPS.DeviceName);
+                                sf.EditCellValue(sf.FieldIndexByName["File name"], shpIndex, gpxFile.FileInfo.Name);
+                                shpIndexes.Add(shpIndex);
+                            }
                         }
                     }
                 }
-                return shpFile;
+
+                sf.DefaultDrawingOptions.PointShape = tkPointShapeType.ptShapeCircle;
+                sf.DefaultDrawingOptions.PointSize = 12;
+                sf.DefaultDrawingOptions.FillColor = _mapWinGISUtils.ColorByName(tkMapColor.Red);
+                return sf;
             }
             else
             {

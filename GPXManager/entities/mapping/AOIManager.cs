@@ -114,6 +114,10 @@ namespace GPXManager.entities.mapping
         public static void FormatAOI(Shapefile aoiShapeFile)
         {
             aoiShapeFile.DefaultDrawingOptions.FillTransparency = 0.25F;
+
+            LinePattern lp = new LinePattern();
+            
+
             MapWindowManager.MapLayersHandler.ClearAllSelections();
             MapWindowManager.RedrawMap();
         }

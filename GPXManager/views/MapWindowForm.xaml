@@ -46,52 +46,42 @@
 
         <ToolBarTray Grid.Row="1" Height="34">
             <ToolBar Height="32" Width="Auto" >
-                <Button x:Name="buttonLayers" Click="OnToolbarButtonClick">
+                <Button x:Name="buttonLayers" Click="OnToolbarButtonClick" ToolTip="Layers">
                     <Image Source="layers1.png" />
                 </Button>
-                <Button x:Name="buttonAddLayer" Click="OnToolbarButtonClick">
+                <Button x:Name="buttonAddLayer" Click="OnToolbarButtonClick" ToolTip="Add layer">
                     <Image Source="layers-new1.png"  />
                 </Button>
-                <Button x:Name="buttonZoomPlus" Click="OnToolbarButtonClick">
+                <Button x:Name="buttonZoomPlus" Click="OnToolbarButtonClick" ToolTip="Zoom in">
                     <Image Source="zoom+.png" OpacityMask="White" />
                 </Button>
-                <Button x:Name="buttonZoomMinus" Click="OnToolbarButtonClick">
+                <Button x:Name="buttonZoomMinus" Click="OnToolbarButtonClick" ToolTip="Zoom out">
                     <Image Source="zoom-.png" OpacityMask="White" />
                 </Button >
-                <Button x:Name="buttonPan" Click="OnToolbarButtonClick">
+                <Button x:Name="buttonPan" Click="OnToolbarButtonClick" ToolTip="Pan">
                     <Image Source="move.png" OpacityMask="White" />
                 </Button >
-                <Button x:Name="buttonAttributes" Click="OnToolbarButtonClick">
+                <Button x:Name="buttonAttributes" Click="OnToolbarButtonClick" ToolTip="Layer attributes">
                     <Image Source="table1.png" OpacityMask="White" />
                 </Button>
-                <Button x:Name="buttonGPS" Click="OnToolbarButtonClick">
+                <Button x:Name="buttonGPS" Click="OnToolbarButtonClick" ToolTip="GPS">
                     <Image Source="gps2.png" OpacityMask="White" />
                 </Button>
-                <Button x:Name="buttonSelect" Click="OnToolbarButtonClick">
+                <Button x:Name="buttonSelect" Click="OnToolbarButtonClick" ToolTip="Select">
                     <Image Source="select1.png" OpacityMask="White" />
                 </Button>
-                <Button x:Name="buttonSelectNone" Click="OnToolbarButtonClick">
+                <Button x:Name="buttonSelectNone" Click="OnToolbarButtonClick" ToolTip="Clear selectiong">
                     <Image Source="select_none1.png" OpacityMask="White" />
                 </Button>
-                <Button x:Name="buttonTrack" Click="OnToolbarButtonClick">
+                <Button x:Name="buttonTrack" Click="OnToolbarButtonClick" ToolTip="Track">
                     <Image Source="track.png" OpacityMask="White" />
                 </Button>
-                <Button x:Name="buttonRuler" Click="OnToolbarButtonClick">
+                <Button x:Name="buttonRuler" Click="OnToolbarButtonClick" ToolTip="Measure">
                     <Image Source="ruler.png" OpacityMask="White" />
                 </Button>
-                <Button x:Name="buttonArchive" Click="OnToolbarButtonClick">
-                    <Image Source="archive.png" OpacityMask="White" />
-                </Button>
-                <Button x:Name="buttonCalendar" Click="OnToolbarButtonClick">
-                    <Image Source="calendar.png" OpacityMask="White" />
-                </Button>
-                <Button x:Name="buttonUploadCloud" Click="OnToolbarButtonClick">
-                    <Image Source="upload to cloud.png" OpacityMask="White" />
-                </Button>
-                <Button x:Name="buttonGears" Click="OnToolbarButtonClick">
-                    <Image Source="gears.png" OpacityMask="White" />
-                </Button>
-                <Button x:Name="buttonExit" Click="OnToolbarButtonClick">
+
+
+                <Button x:Name="buttonExit" Click="OnToolbarButtonClick" ToolTip="Close">
                     <Image Source="exit.png" OpacityMask="White" />
                 </Button>                
 

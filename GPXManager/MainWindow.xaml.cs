@@ -67,13 +67,23 @@ namespace GPXManager
             dataGridGPXFiles.Items.Refresh();
         }
 
+        private void Cleanup()
+        {
+            _detectedDevice = null;
+            _gps = null;
+            _gpxFile = null;
+            _selectedTrip = null;
+            _selectedTripWaypoint = null;
+            MapWindowManager.CleanUp(true);
+        }
+
         private void OnWindowClosing(object sender, CancelEventArgs e)
         {
             if (_usbGPSPresent)
             {
                 Entities.DeviceWaypointGPXViewModel.SaveDeviceGPXToRepository();
             }
-
+            Cleanup();
         }
 
         private void SetupEntities()
@@ -336,12 +346,14 @@ namespace GPXManager
             {
                 menuGPXMap.Visibility = Visibility.Collapsed;
                 menuGPXRemoveFromMap.Visibility = Visibility.Visible;
+                menuGPXRemoveAllFromMap.Visibility = Visibility.Visible;
 
             }
             else
             {
                 menuGPXMap.Visibility = Visibility.Visible;
                 menuGPXRemoveFromMap.Visibility = Visibility.Collapsed;
+                menuGPXRemoveAllFromMap.Visibility = Visibility.Collapsed;
             }
 
             if (refreshGrid)
@@ -352,6 +364,7 @@ namespace GPXManager
         private void ShowGPXOnMap(bool showInMap = true)
         {
             int h = -1;
+            List<int> handles = new List<int>();
             string coastLineFile = $@"{globalMapping.ApplicationPath}\Layers\Coastline\philippines_polygon.shp";
             MapWindowManager.OpenMapWindow(this, coastLineFile);
             if (MapWindowManager.Coastline == null)
@@ -364,19 +377,22 @@ namespace GPXManager
             {
                 foreach(var item in dataGridGPXFiles.SelectedItems)
                 {
-                    GPXFile gpxFile = (GPXFile)item; 
-                    h = MapWindowManager.MapGPX(gpxFile);
-                    gpxFile.LayerHandle = h;
-                    gpxFile.ShownInMap = showInMap;
+                    _gpxFile = (GPXFile)item; 
+                    MapWindowManager.MapGPX(_gpxFile, out h, out handles);
+                    //gpxFile.ShapeIndex = h;
+                    _gpxFile.ShapeIndexes = handles;
+                    _gpxFile.ShownInMap = showInMap;
                 }
             }
             else
             {
-                h = MapWindowManager.MapGPX(_gpxFile);
-                _gpxFile.LayerHandle = h;
+                MapWindowManager.MapGPX(_gpxFile,out h,out handles);
+                //_gpxFile.ShapeIndex = h;
+                _gpxFile.ShapeIndexes = handles;
                 _gpxFile.ShownInMap = showInMap;
             }
             SetGPXFileMenuMapVisibility(h > 0);
+            MapWindowManager.MapControl.Redraw();
         }
         private void ShowGPXFileDetails()
         {
@@ -462,15 +478,38 @@ namespace GPXManager
             treeDevices.Visibility = Visibility.Collapsed;
         }
 
+       
 
         private void OnMenuClick(object sender, RoutedEventArgs e)
         {
             string menuName = ((MenuItem)sender).Name;
             switch(menuName)
             {
+                case "menuGPXRemoveAllFromMap":
+                    if(dataGridGPXFiles.SelectedItems.Count>0)
+                    {
+                        MapWindowManager.RemoveLayerByKey("gpxfile_track");
+                        MapWindowManager.RemoveLayerByKey("gpxfile_waypoint");
+                        GPXMappingManager.RemoveAllFromMap();
+                        dataGridGPXFiles.Items.Refresh();
+                    }
+                    break;
                 case "menuGPXRemoveFromMap":
                     _gpxFile.ShownInMap = false;
-                    MapWindowManager.MapLayersHandler.RemoveLayer(_gpxFile.LayerHandle);
+                    if(_gpxFile.TrackCount>0)
+                    {
+                        // ((Shapefile)MapWindowManager.GPXTracksLayer.LayerObject).EditDeleteShape(_gpxFile.ShapeIndex);
+                        ((Shapefile)MapWindowManager.GPXTracksLayer.LayerObject).EditDeleteShape(_gpxFile.ShapeIndexes[0]);
+                    }
+                    else
+                    {
+                        foreach(int h in _gpxFile.ShapeIndexes)
+                        {
+                            ((Shapefile)MapWindowManager.GPXWaypointsLayer.LayerObject).EditDeleteShape(h);
+                        }
+                        //((Shapefile)MapWindowManager.GPXWaypointsLayer.LayerObject).EditDeleteShape(_gpxFile.ShapeIndex);
+                    }
+                    MapWindowManager.MapControl.Redraw();
                     SetGPXFileMenuMapVisibility(false);
                     break;
                 case "menuGPXMap":
@@ -498,16 +537,7 @@ namespace GPXManager
                     AddTrip();
                     break;
                 case "menuTripCalendar":
-                    if (Global.AppProceed)
-                    {
-                        HideTrees();
-                        ResetView();
-                        ShowCalendarTree();
-                    }
-                    else
-                    {
-                        MessageBox.Show("Application need to be setup first","GPX Manager", MessageBoxButton.OK,MessageBoxImage.Information);
-                    }
+                    ShowTripCalendar();
 
                     break;
                 case "menuSaveGPS":
@@ -543,16 +573,8 @@ namespace GPXManager
                     }
                     break;
                 case "menuOptions":
-                    using (var settingsWindow = new SettingsWindow())
-                    {
-                        settingsWindow.Owner = this;
-                        settingsWindow.ParentWindow = this;
-                        if((bool)settingsWindow.ShowDialog() && Global.AppProceed)
-                        {
-                            SetupEntities();   
-                        }
-                    }
-                        break;
+                    ShowSettingsWindow();
+                    break;
                 case "menuGPSBrands":
                     SelectBrandModel(ShowMode.ShowModeBrand);
                     break;
@@ -573,6 +595,32 @@ namespace GPXManager
             }
         }
 
+        private void ShowTripCalendar()
+        {
+            if (Global.AppProceed)
+            {
+                HideTrees();
+                ResetView();
+                ShowCalendarTree();
+            }
+            else
+            {
+                MessageBox.Show("Application need to be setup first", "GPX Manager", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+
+        private void ShowSettingsWindow()
+        {
+            using (var settingsWindow = new SettingsWindow())
+            {
+                settingsWindow.Owner = this;
+                settingsWindow.ParentWindow = this;
+                if ((bool)settingsWindow.ShowDialog() && Global.AppProceed)
+                {
+                    SetupEntities();
+                }
+            }
+        }
         private void LocateGPXFolder()
         {
             if (_detectedDevice != null)
@@ -1169,10 +1217,23 @@ namespace GPXManager
 
                         MapWindowManager.MapLayersHandler?.ClearAllSelections();
 
+
+
                         if(_gpxFile.ShownInMap)
                         {
-                            var currentLayer =  MapWindowManager.MapLayersHandler.set_MapLayer(_gpxFile.LayerHandle);
-                            MapWindowManager.MapLayersHandler.MakeLayerSelected(currentLayer);
+                            if (_isTrackGPX)
+                            {
+                                MapWindowManager.MapLayersHandler.set_MapLayer(MapWindowManager.GPXTracksLayer.Handle);
+                            }
+                            else
+                            {
+                                MapWindowManager.MapLayersHandler.set_MapLayer(MapWindowManager.GPXWaypointsLayer.Handle);
+                            }
+
+                            foreach (int handle in _gpxFile.ShapeIndexes)
+                            {
+                                ((Shapefile)MapWindowManager.MapLayersHandler.CurrentMapLayer.LayerObject).ShapeSelected[handle] = true;
+                            }
                         }
 
                     }
@@ -1299,6 +1360,39 @@ namespace GPXManager
             else
             {
                 menuAddTripFromTRack.Visibility = Visibility.Visible;
+            }
+        }
+        private void ToBeImplemented(string usage)
+        {
+            System.Windows.MessageBox.Show($"The {usage} functionality is not yet implemented", "Placeholder and not yet working", MessageBoxButton.OK, MessageBoxImage.Information); ;
+        }
+        private void OnToolbarButtonClick(object sender, RoutedEventArgs e)
+        {
+            switch (((Button)sender).Name)
+            {
+                case "buttonArchive":
+                    ToBeImplemented("archive");
+                    break;
+                case "buttonUploadCloud":
+                    ToBeImplemented("upload to cloud");
+                    break;
+                case "buttonCalendar":
+                    ShowTripCalendar();
+                    break;
+                case "buttonSettings":
+                    ShowSettingsWindow();
+                    break;
+                case "buttonExit":
+                    Close();
+                    break;
+                case "buttonUSB":
+                    HideTrees();
+                    treeDevices.Visibility = Visibility.Visible;
+                    ScanUSBDevices();
+                    break;
+                case "buttonMap":
+                    MapWindowManager.OpenMapWindow(this);
+                    break;
             }
         }
     }

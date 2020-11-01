@@ -11,6 +11,7 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="30"/>
+            <RowDefinition Height="34" />
             <RowDefinition/>
             <RowDefinition Height="35"/>
         </Grid.RowDefinitions>
@@ -20,27 +21,72 @@
                     <MenuItem Header="GPS" x:Name="menuSaveGPS" Click="OnMenuClick"/>
                     <MenuItem Header="Trips" x:Name="menuSaveTrips" Click="OnMenuClick"/>
                 </MenuItem>
-                <MenuItem Header="Close" x:Name="menuCloseApp" Click="OnMenuClick"/>
+                <MenuItem Header="Close" x:Name="menuCloseApp" Click="OnMenuClick" >
+                    <MenuItem.Icon>
+                        <Image Source="exit.png" OpacityMask="White" />
+                    </MenuItem.Icon>
+                </MenuItem>
             </MenuItem>
             <MenuItem Header="Edit">
-                <MenuItem Header="Scan USB storage" x:Name="menuScanDevices" Click="OnMenuClick"/>
+                <MenuItem Header="Scan USB storage" x:Name="menuScanDevices" Click="OnMenuClick">
+                    <MenuItem.Icon>
+                        <Image Source="uisb.png" OpacityMask="White" />
+                    </MenuItem.Icon>
+                </MenuItem>
                 <MenuItem Header="Browse GPX folder in device" x:Name="menuGPXFolder" Click="OnMenuClick" Visibility="Collapsed"/>
                 <MenuItem Header="GPS brands" x:Name="menuGPSBrands" Click="OnMenuClick" Visibility="Collapsed"/>
                 <MenuItem Header="GPS models" x:Name="menuGPSModels" Click="OnMenuClick" Visibility="Collapsed"/>
-                <MenuItem Header="Trip calendar" x:Name="menuTripCalendar" Click="OnMenuClick" Visibility="Visible"/>
-                <Separator/>
-                <MenuItem Header="Settings" x:Name="menuOptions" Click="OnMenuClick" Visibility="Visible"/>
+                <MenuItem Header="Trip calendar" x:Name="menuTripCalendar" Click="OnMenuClick" Visibility="Visible">
+                    <MenuItem.Icon>
+                        <Image Source="calendar2.png" OpacityMask="White" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Settings" x:Name="menuOptions" Click="OnMenuClick" Visibility="Visible">
+                    <MenuItem.Icon>
+                        <Image Source="gears.png" OpacityMask="White" />
+                    </MenuItem.Icon>
+                </MenuItem>
                 <MenuItem Header="Clear tables" x:Name="menuClearTables" Click="OnMenuClick" Visibility="Collapsed"/>
-                <MenuItem Header="Map" x:Name="menuMapper" Click="OnMenuClick" Visibility="Visible"/>
+                <MenuItem Header="Map" x:Name="menuMapper" Click="OnMenuClick" Visibility="Visible">
+                    <MenuItem.Icon>
+                        <Image Source="map screen.png" OpacityMask="White" />
+                    </MenuItem.Icon>
+                </MenuItem>
             </MenuItem>
         </Menu>
-
-        <Grid Grid.Row="1">
+        <ToolBarTray Grid.Row="1" Height="34">
+            <ToolBar Height="32" Width="Auto" >
+                <Button x:Name="buttonUSB" Click="OnToolbarButtonClick" ToolTip="Scan USB">
+                    <Image Source="uisb.png" OpacityMask="White" />
+                </Button>
+                <Button x:Name="buttonMap" Click="OnToolbarButtonClick" ToolTip="Open map">
+                    <Image Source="map screen.png" OpacityMask="White" />
+                </Button>
+                <Button x:Name="buttonCalendar" Click="OnToolbarButtonClick" ToolTip="Trip calendar">
+                    <Image Source="calendar2.png" OpacityMask="White" />
+                </Button>                
+                <Button x:Name="buttonUploadCloud" Click="OnToolbarButtonClick" ToolTip="Upload to cloud">
+                    <Image Source="upload to cloud.png" OpacityMask="White" />
+                </Button>
+                <Button x:Name="buttonArchive" Click="OnToolbarButtonClick" ToolTip="Archive">
+                    <Image Source="archive.png" OpacityMask="White" />
+                </Button>
+                <Button x:Name="buttonSettings" Click="OnToolbarButtonClick" ToolTip="Settings">
+                    <Image Source="gears.png" OpacityMask="White" />
+                </Button>
+                <Button x:Name="buttonExit" Click="OnToolbarButtonClick" ToolTip="Close">
+                    <Image Source="exit.png" OpacityMask="White" />
+                </Button>
+            </ToolBar>
+        </ToolBarTray>
+        <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="300"/>
+                <ColumnDefinition Width="74.867"/>
+                <ColumnDefinition Width="12.333"/>
+                <ColumnDefinition Width="212.517"/>
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
-            <Border BorderThickness="1" BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}">
+            <Border BorderThickness="1" BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}" Grid.ColumnSpan="3" Margin="0,0,0,-0.2">
                 <StackPanel>
                     <TreeView ScrollViewer.HorizontalScrollBarVisibility="Disabled" x:Name="treeDevices"  SelectedItemChanged="OnTreeViewSelectedItemChange" Background="{x:Null}" BorderBrush="{x:Null}" Foreground="{x:Null}">
                         <TreeViewItem Header="Devices" Tag="root" Background="{x:Null}"/>
@@ -51,7 +97,7 @@
                     </TreeView>
                 </StackPanel>
             </Border>
-            <StackPanel Grid.Column="1" x:Name="panelMain">
+            <StackPanel Grid.Column="3" x:Name="panelMain" Margin="0,0,-0.4,-0.2">
                 <Label x:Name="labelTitle" Margin="10 0 0 0" Content="This is the label title"/>
                 <Label x:Name="labelDeviceName" Margin="10,0" Content="Device name" FontSize="12" FontWeight="Bold" Visibility="Collapsed"/>
                 <TextBlock x:Name="textBlock" Margin="10 0" Visibility="Visible" Text="this is a text block"  Foreground="{DynamicResource {x:Static SystemColors.ActiveCaptionTextBrushKey}}" HorizontalAlignment="Left"/>
@@ -84,6 +130,7 @@
                                 <MenuItem Header="Details" Click="OnMenuClick" x:Name="menuGPXFileDetails" Visibility="Visible"/>
                                 <MenuItem Header="Show in map" Click="OnMenuClick" x:Name="menuGPXMap" Visibility="Visible"/>
                                 <MenuItem Header="Remove from map" Click="OnMenuClick" x:Name="menuGPXRemoveFromMap" Visibility="Collapsed"/>
+                                <MenuItem Header="Remove all from map" Click="OnMenuClick" x:Name="menuGPXRemoveAllFromMap" Visibility="Collapsed"/>
                             </ContextMenu>
                         </DataGrid.ContextMenu>
                     </DataGrid>
@@ -120,10 +167,10 @@
                     </StackPanel>
                 </StackPanel>
             </StackPanel>
-            
+
 
         </Grid>
-        <StatusBar Grid.Row="2" Grid.ColumnSpan="3">
+        <StatusBar Grid.Row="3" Grid.ColumnSpan="3">
             <Label x:Name="statusLabel" Content="This is a status label"/>
         </StatusBar>
     </Grid>

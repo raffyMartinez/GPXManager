@@ -123,6 +123,7 @@
     <Compile Include="entities\mapping\Enums.cs" />
     <Compile Include="entities\mapping\extension.cs" />
     <Compile Include="entities\mapping\globalMapping.cs" />
+    <Compile Include="entities\mapping\GPXMappingManager.cs" />
     <Compile Include="entities\mapping\LabelProperty.cs" />
     <Compile Include="entities\mapping\LayerEventArg.cs" />
     <Compile Include="entities\mapping\LineWidthFix.cs" />
@@ -412,6 +413,33 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="views\exit.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="views\calendar2.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="exit.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="gears.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="upload to cloud.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="calendar2.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="uisb.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="archive.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="handheld gps.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="map screen.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

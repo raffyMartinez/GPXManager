@@ -56,7 +56,7 @@ namespace GPXManager.views
             MapWindowManager.CleanUp();
             this.SavePlacement();
 
-            Entities.GPXFileViewModel.RemoveAllFromMap();
+            GPXMappingManager.RemoveAllFromMap();
             ParentWindow.ResetDataGrids();
         }
 
@@ -199,12 +199,17 @@ namespace GPXManager.views
                     MapLayersHandler.ClearAllSelections();
                     break;
                 case "buttonAttributes":
-                    if (MapLayersHandler.MapHasSelection)
+                    if (MapLayersHandler.CountLayersWithSelection==1)
                     {
                         var saw = new ShapeFileAttributesWindow();
-                        saw.ShowShapeFileAttribute(MapWindowManager.MapLayersHandler.CurrentMapLayer.LayerObject as Shapefile);
+                        saw.ShapeFile = MapWindowManager.MapLayersHandler.CurrentMapLayer.LayerObject as Shapefile;
+                        saw.ShowShapeFileAttribute();
                         saw.Owner = this;
                         saw.Show();
+                    }
+                    else
+                    {
+                        System.Windows.MessageBox.Show("Map must have only one layer with selected features","GPX Manager",MessageBoxButton.OK, MessageBoxImage.Information);
                     }
                     break;
                 case "buttonGears":
@@ -215,9 +220,6 @@ namespace GPXManager.views
                     break;
                 case "buttonCalendar":
                     ToBeImplemented("calendar");
-                    break;
-                case "buttonArchive":
-                    ToBeImplemented("archive");
                     break;
                 case "buttonTrack":
                     ToBeImplemented("track");

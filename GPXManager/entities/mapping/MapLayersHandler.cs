@@ -246,6 +246,26 @@ namespace GPXManager.entities.mapping
                     break;
             }
         }
+
+        public int CountLayersWithSelection
+        {
+            get
+            {
+                int count = 0;
+                foreach (var item in MapLayerDictionary.Values)
+                {
+                    if (item.LayerType == "ShapefileClass")
+                    {
+                        var sf = item.LayerObject as Shapefile;
+                        if (sf.NumSelected > 0)
+                        {
+                            count++;
+                        }
+                    }
+                }
+                return count;
+            }
+        }
         public bool MapHasSelection
         {
             get
@@ -520,6 +540,44 @@ namespace GPXManager.entities.mapping
             return false;
         }
 
+        public void RemoveLayerByKey(string layerKey)
+        {
+            if (LayerDictionary.Count > 0)
+            {
+                List<int> layerHandles= new List<int>();
+                int counter = 0;
+                foreach (var item in LayerDictionary.Values)
+                {
+                    if (item.LayerKey == layerKey)
+                    {
+                        layerHandles.Add(item.Handle);
+                    }
+                }
+
+                foreach (var h in layerHandles)
+                {
+
+                    MapLayerDictionary[h].Dispose();
+                    MapLayerDictionary.Remove(h);
+                    _axmap.RemoveLayer(h);
+
+
+                    if (LayerRemoved != null)
+                    {
+                        LayerEventArg lp = new LayerEventArg(h, layerRemoved: true);
+                        LayerRemoved(this, lp);
+                    }
+                    counter++;
+                    
+                }
+                
+
+                if (counter > 0)
+                {
+                    _axmap.Redraw();
+                }
+            }
+        }
         /// <summary>
         /// Removes a layer using layer handle and raises a Layer removed event.
         /// </summary>
@@ -792,7 +850,9 @@ namespace GPXManager.entities.mapping
         {
             if(rejectIfExisting && layerName.Length>0 &&  Exists(layerName))
             {
-                return get_MapLayer(layerName).Handle;
+                var handle = get_MapLayer(layerName).Handle;
+                MapLayerDictionary[handle].LayerObject = sf;
+                return handle;
             }
             if (uniqueLayer)
             {
@@ -1093,6 +1153,8 @@ namespace GPXManager.entities.mapping
                     Shapefile currentShapefile = (Shapefile)mapLayer.LayerObject;
                     currentShapefile.SelectionAppearance = tkSelectionAppearance.saDrawingOptions;
                     currentShapefile.SelectionDrawingOptions.LineWidth = 3;
+                    currentShapefile.SelectionDrawingOptions.PointSize = 12;
+                    currentShapefile.SelectionDrawingOptions.PointShape = tkPointShapeType.ptShapeCircle;
                     currentShapefile.SelectAll();
                     
                     break;

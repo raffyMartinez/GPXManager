@@ -22,18 +22,30 @@ namespace GPXManager.entities.mapping
     {
         public static MapWindowForm MapWindowForm { get; private set; }
 
+        public static MapLayer GPXTracksLayer { get; set; }
+
+        public static MapLayer GPXWaypointsLayer { get; set; }
+
+
         public static MapLayersHandler MapLayersHandler { get; private set; }
         public static MapInterActionHandler MapInterActionHandler { get; private set; }
         public static Shapefile Coastline { get; private set; }
         public static AxMap MapControl { get; private set; }
         public static Dictionary<int, string> TileProviders { get; set; } = new Dictionary<int, string>();
-        public static void CleanUp()
+        public static void CleanUp(bool applicationIsClosing = false)
         {
             MapInterActionHandler = null; 
             MapLayersHandler = null; ;
             MapControl = null;
             Coastline = null;
-            MapWindowForm = null; 
+            MapWindowForm = null;
+            GPXTracksLayer = null;
+            GPXWaypointsLayer = null;
+
+            if(applicationIsClosing)
+            {
+                TileProviders = null;
+            }
         }
 
 
@@ -123,6 +135,7 @@ namespace GPXManager.entities.mapping
                                     extentsTop = double.Parse(reader.GetAttribute("ExtentsTop"));
                                     extentsBottom = double.Parse(reader.GetAttribute("ExtentsBottom"));
                                     hasCoastline = reader.GetAttribute("HasCoastline") == "1";
+
                                     if(hasCoastline)
                                     {
                                         isCoastlineVisible = reader.GetAttribute("CoastlineVisible") == "1";
@@ -134,6 +147,10 @@ namespace GPXManager.entities.mapping
                                     if(reader.GetAttribute("Visible")=="0")
                                     {
                                         MapControl.TileProvider = tkTileProvider.ProviderNone;
+                                    }
+                                    else
+                                    {
+                                        MapControl.TileProvider = (tkTileProvider)Enum.Parse(typeof(tkTileProvider), reader.GetAttribute("Provider"));
                                     }
                                     break;
                                 case "Layer":
@@ -162,7 +179,8 @@ namespace GPXManager.entities.mapping
                                             }
                                             break;
                                     }
-                                    break; 
+                                    break;
+                                  
                             }
                         }
                     }
@@ -296,9 +314,17 @@ namespace GPXManager.entities.mapping
             MapWindowForm = null;
         }
 
-        public static int MapGPX(GPXFile gpxFile, bool showInMap = true)
+        public static void RemoveLayerByKey(string key)
         {
-            string layerKey = "";
+            MapLayersHandler.RemoveLayerByKey(key);
+        }
+
+        public static int MapGPX(GPXFile gpxFile,  out int shpIndex,  out List<int>handles,  bool showInMap = true)
+        {
+            shpIndex = -1;
+            handles = new List<int>();
+            var utils = new MapWinGIS.Utils();
+            var shpfileName = "";
             if (showInMap)
             {
                 if (gpxFile != null)
@@ -306,21 +332,31 @@ namespace GPXManager.entities.mapping
                     Shapefile sf = null;
                     if (gpxFile.TrackCount > 0)
                     {
-                        sf = ShapefileFactory.TrackFromGPX(gpxFile);
-                        var fldFIleName = sf.EditAddField("Filename", FieldType.STRING_FIELD, 1, 1);
-                        var fldLength = sf.EditAddField("Length", FieldType.DOUBLE_FIELD, 1, 1);
-                        sf.EditCellValue(fldFIleName, 0, gpxFile.FileName);
-                        sf.EditCellValue(fldLength, 0, gpxFile.TrackLength);
-                        sf.Key = "track";
-                        layerKey = "gpxfile_track";
+                        //sf = ShapefileFactory.TrackFromGPX(gpxFile,out shpIndex);
+                        sf = ShapefileFactory.TrackFromGPX(gpxFile, out handles);
+                        shpfileName = "GPX tracks";
                     }
                     else if (gpxFile.WaypointCount > 0)
                     {
-                        sf = ShapefileFactory.NamedPointsFromGPX(gpxFile);
-                        sf.Key = "waypoint";
-                        layerKey = "gpxfile_waypoint";
+                        sf = ShapefileFactory.NamedPointsFromGPX(gpxFile, out handles);
+                        shpfileName = "GPX waypoints";
+
                     }
-                    return MapLayersHandler.AddLayer(sf, gpxFile.FileInfo.Name, uniqueLayer: true, layerKey: layerKey, rejectIfExisting: true);
+                    //MapWindowForm.Title =$"Number of layers:{MapControl.NumLayers}";
+                    MapLayersHandler.AddLayer(sf, shpfileName, uniqueLayer: true, layerKey: sf.Key, rejectIfExisting: true);
+
+                    if (gpxFile.TrackCount > 0)
+                    {
+                        GPXTracksLayer = MapLayersHandler.CurrentMapLayer;
+                    }
+                    else if (gpxFile.WaypointCount > 0)
+                    {
+
+                        GPXWaypointsLayer = MapLayersHandler.CurrentMapLayer;
+
+                    }
+
+                    return MapLayersHandler.CurrentMapLayer.Handle;
                 }
                 else
                 {
