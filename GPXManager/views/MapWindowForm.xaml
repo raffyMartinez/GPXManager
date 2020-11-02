@@ -80,6 +80,10 @@
                     <Image Source="ruler.png" OpacityMask="White" />
                 </Button>
 
+                <Button x:Name="buttonDataScreen" Click="OnToolbarButtonClick" ToolTip="Hide map window">
+                    <Image Source="data screen.png" OpacityMask="White" />
+                </Button>
+
 
                 <Button x:Name="buttonExit" Click="OnToolbarButtonClick" ToolTip="Close">
                     <Image Source="exit.png" OpacityMask="White" />

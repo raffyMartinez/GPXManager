@@ -77,6 +77,7 @@
                 <Button x:Name="buttonExit" Click="OnToolbarButtonClick" ToolTip="Close">
                     <Image Source="exit.png" OpacityMask="White" />
                 </Button>
+             
             </ToolBar>
         </ToolBarTray>
         <Grid Grid.Row="2">

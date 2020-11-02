@@ -54,7 +54,8 @@ namespace GPXManager
         private TreeViewItem _gpsTreeViewItem;
         private DateTime _tripMonthYear;
         private bool _usbGPSPresent;
-        
+
+        public DataGrid CurrentDataGrid { get; set; }
         public MainWindow()
         {
             InitializeComponent();
@@ -392,6 +393,7 @@ namespace GPXManager
                 _gpxFile.ShownInMap = showInMap;
             }
             SetGPXFileMenuMapVisibility(h > 0);
+            dataGridGPXFiles.SelectedItems.Clear();
             MapWindowManager.MapControl.Redraw();
         }
         private void ShowGPXFileDetails()
@@ -667,12 +669,13 @@ namespace GPXManager
                         var gpsItem = new TreeViewItem
                         {
                             Header = $"{device.Disks[0].Caption}\\{device.GPS.Folder}",
-                            Tag = "gpx_folder"
+                            Tag = "gpx_folder",
                         };
                         tvi.Header = device.GPS.DeviceName;
                         tvi.Items.Add(gpsItem);
                         AddTripNode(tvi);
                         GetGPXFiles(device);
+                        ShowGPXMonthNodes(gpsItem, device.GPS);
                         _usbGPSPresent = true;
                     }
                     else
@@ -705,6 +708,18 @@ namespace GPXManager
             }
             
         }
+
+        private void ShowGPXMonthNodes(TreeViewItem parent, GPS gps)
+        {
+            foreach(var item in Entities.GPXFileViewModel.FilesByMonth(gps).Keys)
+            {
+                int h=parent.Items.Add(new TreeViewItem {Header=item.ToString("MMM-yyyy")});
+                TreeViewItem monthNode = parent.Items[h] as TreeViewItem;
+                monthNode.Tag = "month_node";
+            }
+            parent.IsExpanded = true;
+        }
+
         private bool TreeItemExists(TreeViewItem parent, TreeViewItem testItem)
         {
             foreach ( TreeViewItem item in parent.Items)
@@ -892,6 +907,7 @@ namespace GPXManager
             buttonGPXDetails.IsEnabled = false;
             _gpxFile = null;
             dataGridGPXFiles.ItemsSource = Entities.GPXFileViewModel.GetFiles(device.SerialNumber);
+            CurrentDataGrid = dataGridGPXFiles;
         }
         private void ShowGPS()
         {
@@ -932,6 +948,7 @@ namespace GPXManager
             buttonDeleteTrip.IsEnabled = false;
             buttonEditTrip.IsEnabled = false;
             _selectedTrip = null;
+            CurrentDataGrid = dataGridTrips;
         }
 
         private void ShowTripWaypoints(bool fromGPSSummary=false)
@@ -1086,6 +1103,8 @@ namespace GPXManager
                     labelTitle.Content = "Trip log";
                     ShowTripData();
                     break;
+                case "month_node":
+                    break;
                 default:
                     _gpsTreeViewItem = (TreeViewItem)treeDevices.SelectedItem;
                     inDeviceNode = true;
@@ -1180,6 +1199,10 @@ namespace GPXManager
 
         private void OnDataGridSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            if (MapWindowManager.MapWindowForm != null)
+            {
+                MapWindowManager.MapWindowForm.LayerSelector = (DataGrid)sender;
+            }
             switch(((DataGrid)sender).Name)
             {
                 case "dataGridGPSSummary":
@@ -1221,7 +1244,7 @@ namespace GPXManager
 
                         if(_gpxFile.ShownInMap)
                         {
-                            if (_isTrackGPX)
+                            if (_isTrackGPX )
                             {
                                 MapWindowManager.MapLayersHandler.set_MapLayer(MapWindowManager.GPXTracksLayer.Handle);
                             }

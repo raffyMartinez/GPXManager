@@ -9,6 +9,8 @@ using System.IO;
 using System.Reflection;
 using System.Xml;
 using GPXManager.entities;
+using System.Linq;
+
 namespace GPXManager.entities.mapping
 
 {
@@ -112,6 +114,11 @@ namespace GPXManager.entities.mapping
         {
             _axmap.MoveLayerBottom(_axmap.get_LayerPosition(_currentMapLayer.Handle));
             _axmap.Redraw();
+        }
+
+        public List<MapLayer>MapLayers
+        {
+            get { return MapLayerDictionary.Values.OrderBy(t => t.LayerPosition).ToList(); }
         }
 
         IEnumerator<MapLayer> IEnumerable<MapLayer>.GetEnumerator()

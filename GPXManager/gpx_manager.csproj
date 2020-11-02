@@ -138,6 +138,9 @@
     <Compile Include="entities\mapping\Views\AOIWindow.xaml.cs">
       <DependentUpon>AOIWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="entities\mapping\Views\MapLayersWindow.xaml.cs">
+      <DependentUpon>MapLayersWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="entities\mapping\Views\SelectTileProviderWindow.xaml.cs">
       <DependentUpon>SelectTileProviderWindow.xaml</DependentUpon>
     </Compile>
@@ -188,6 +191,10 @@
       <DependentUpon>SettingsWindow.xaml</DependentUpon>
     </Compile>
     <Page Include="entities\mapping\Views\AOIWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="entities\mapping\Views\MapLayersWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -440,6 +447,18 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="map screen.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="globe.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="views\data screen.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="entities\mapping\Views\layers new.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="entities\mapping\Views\layer remove.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

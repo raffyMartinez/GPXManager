@@ -15,11 +15,14 @@ using System.Security.Policy;
 using System.Xml.Linq;
 using System.Xml.XPath;
 using System.Threading;
+using GPXManager.entities.mapping.Views;
 
 namespace GPXManager.entities.mapping
 {
     public static class MapWindowManager
     {
+        public static ShapeFileAttributesWindow ShapeFileAttributesWindow { get; set; }
+        public static MapLayersWindow MapLayersWindow { get; set; }
         public static MapWindowForm MapWindowForm { get; private set; }
 
         public static MapLayer GPXTracksLayer { get; set; }
@@ -39,6 +42,7 @@ namespace GPXManager.entities.mapping
             MapControl = null;
             Coastline = null;
             MapWindowForm = null;
+            MapLayersWindow = null;
             GPXTracksLayer = null;
             GPXWaypointsLayer = null;
 
@@ -97,6 +101,21 @@ namespace GPXManager.entities.mapping
                     LoadCoastline(coastlineShapefile);
                 }
             }
+
+
+            if(MapLayersWindow!=null)
+            {
+                MapLayersWindow.Visibility = Visibility.Visible;
+                MapLayersWindow.BringIntoView();
+            }
+
+            if(ShapeFileAttributesWindow!=null)
+            {
+                ShapeFileAttributesWindow.Visibility = Visibility.Visible;
+                ShapeFileAttributesWindow.BringIntoView();
+            }
+
+
             return mwf;
         }
 

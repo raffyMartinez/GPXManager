@@ -34,6 +34,7 @@ namespace GPXManager.entities.mapping.Views
         }
         private void OnWindowClosing(object sender, System.ComponentModel.CancelEventArgs e)
         {
+            _instance = null;
             this.SavePlacement();
         }
 

@@ -7,6 +7,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.IO;
 using MapWinGIS;
+using Xceed.Wpf.Toolkit;
 
 namespace GPXManager.entities
 {
@@ -19,7 +20,14 @@ namespace GPXManager.entities
             GPXFileCollection.CollectionChanged += GPXFileCollection_CollectionChanged;
         }
 
-
+        public Dictionary<DateTime,List<GPXFile>>FilesByMonth(GPS gps)
+        {
+            return GPXFileCollection
+                .Where(g=>g.GPS.DeviceID==gps.DeviceID)
+                .OrderBy(m=>m.DateRangeStart)
+                .GroupBy(o => o.MonthYear)
+                .ToDictionary(g => g.Key, g => g.ToList());
+        }
 
         public List<GPXFile>GetFiles(string deviceID)
         {

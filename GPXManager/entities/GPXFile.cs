@@ -8,6 +8,13 @@ using System.Threading.Tasks;
 
 namespace GPXManager.entities
 {
+
+    public enum GPXFileType
+    {
+        Common,
+        Track,
+        Waypoint
+    }
     public class GPXFile
     {
         public GPXFile(FileInfo fileInfo)
@@ -18,12 +25,38 @@ namespace GPXManager.entities
             DateModifiedUTC = fileInfo.LastWriteTimeUtc;
             Size = fileInfo.Length;
         }
+        public DateTime MonthYear
+        {
+            get
+            {
+                return new DateTime(DateRangeStart.Year, DateRangeStart.Month, 1);
+            }
+        }
         public FileInfo FileInfo { get; set; }
         public string FileName { get; set; }
         public int WaypointCount { get; internal set; }
         public int TrackCount{ get; internal set; }
 
         public int TrackPointsCount { get; internal set; }
+
+        public GPXFileType GPXFileType
+        {
+            get
+            {
+                if(TrackCount>0 && WaypointCount>0)
+                {
+                    return GPXFileType.Common;
+                }
+                else if(TrackCount>0)
+                {
+                    return GPXFileType.Track;
+                }
+                else
+                {
+                    return GPXFileType.Waypoint;
+                }
+            }
+        }
 
         public double TrackLength { get; internal set; }
         public TimeSpan TimeInMotion { get; internal set; }

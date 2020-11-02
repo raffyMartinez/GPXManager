@@ -4,6 +4,7 @@ using GPXManager.entities.mapping;
 using GPXManager.entities.mapping.Views;
 using MapWinGIS;
 using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
@@ -43,6 +44,11 @@ namespace GPXManager.views
             Closing += OnWindowClosing;
         }
 
+        public System.Windows.Controls.Control LayerSelector { get; set; }
+        public MapLayer CurrentLayer { get; set; }
+
+        public List<int> SelectedShapeIndexes { get; set; }
+
         public MapInterActionHandler MapInterActionHandler { get; private set; }
         public MapLayersHandler MapLayersHandler { get; private set; }
         public static MapWindowForm GetInstance()
@@ -53,11 +59,12 @@ namespace GPXManager.views
         private void OnWindowClosing(object sender, CancelEventArgs e)
         {
             _instance = null;
-            MapWindowManager.CleanUp();
             this.SavePlacement();
 
             GPXMappingManager.RemoveAllFromMap();
             ParentWindow.ResetDataGrids();
+            MapWindowManager.CleanUp();
+            ParentWindow.Focus();
         }
 
 
@@ -81,9 +88,61 @@ namespace GPXManager.views
             menuMapCoastlineVisible.IsChecked = MapLayersHandler.get_MapLayer("Coastline").Visible;
             MapWindowManager.ResetCursor();
 
-            
+            MapInterActionHandler.ShapesSelected += OnMapShapeSelected;
+            MapLayersHandler.CurrentLayer += OnMapCurrentLayer;
         }
 
+        private void OnMapCurrentLayer(MapLayersHandler s, LayerEventArg e)
+        {
+            CurrentLayer = s.CurrentMapLayer;
+        }
+
+        private void OnMapShapeSelected(MapInterActionHandler s, LayerEventArg e)
+        {
+            bool isFound = false;
+            if (CurrentLayer.LayerType == "ShapefileClass" && LayerSelector!=null)
+            {
+                SelectedShapeIndexes = e.SelectedIndexes.ToList();
+
+
+                switch (LayerSelector.GetType().Name)
+                {
+                    case "DataGrid":
+                        var dataGrid = (System.Windows.Controls.DataGrid)LayerSelector;
+                        foreach (var item in dataGrid.Items)
+                        {
+                            GPXFile gpxFile = (GPXFile)item;
+                            if (SelectedShapeIndexes.Count == 1 && gpxFile.ShapeIndexes.Contains(SelectedShapeIndexes[0]))
+                            {
+                                switch (CurrentLayer.LayerKey)
+                                {
+                                    case "gpxfile_track":
+                                        if(gpxFile.GPXFileType==GPXFileType.Track)
+                                        {
+                                            isFound = true;
+                                        }
+                                        break;
+                                    case "gpxfile_waypoint":
+                                        if(gpxFile.GPXFileType==GPXFileType.Waypoint)
+                                        {
+                                            isFound = true;
+                                        }
+                                        break;
+                                }
+
+                                if (isFound)
+                                {
+                                    dataGrid.SelectedItem = item;
+                                    dataGrid.ScrollIntoView(item);
+                                    break;
+                                }
+                            }
+                        }
+                        break;
+                }
+                
+            }
+        }
 
         public string CoastlineShapeFile_FileName { get; set; }
         protected override void OnSourceInitialized(EventArgs e)
@@ -171,6 +230,18 @@ namespace GPXManager.views
             tkCursor cursor = tkCursor.crsrArrow;
             switch(((System.Windows.Controls.Button)sender).Name)
             {
+                case "buttonDataScreen":
+                    Visibility = Visibility.Hidden;
+                    if (MapWindowManager.MapLayersWindow != null)
+                    {
+                        MapWindowManager.MapLayersWindow.Visibility = Visibility.Hidden;
+                    }
+                    if(MapWindowManager.ShapeFileAttributesWindow != null)
+                    {
+                        MapWindowManager.ShapeFileAttributesWindow.Visibility = Visibility.Hidden;
+                    }
+                    ParentWindow.Focus();
+                    break;
                 case "buttonExit":
                     Close();
                     break;
@@ -228,7 +299,21 @@ namespace GPXManager.views
                     ToBeImplemented("gps");
                     break;
                 case "buttonLayers":
-                    ToBeImplemented("manage layers");
+                    var mlw = MapLayersWindow.GetInstance();
+                    
+                    if (mlw.Visibility==Visibility.Visible)
+                    {
+                        mlw.BringIntoView();
+                        mlw.Focus();
+                    }
+                    else
+                    {
+                        mlw.ParentForm = this;
+                        mlw.Owner = this;
+                        mlw.MapLayersHandler = MapWindowManager.MapLayersHandler;
+                        mlw.Show();
+                    }
+                    
                     break;
                 case "buttonAddLayer":
                     ToBeImplemented("add a layer");
