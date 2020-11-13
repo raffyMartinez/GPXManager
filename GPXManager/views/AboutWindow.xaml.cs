@@ -34,7 +34,7 @@ namespace GPXManager.views
             //FileVersionInfo exeVersion = FileVersionInfo.GetVersionInfo(exePath);
             //labelAppVerion.Content = $"App version: {exeVersion.ProductVersion}";
 
-            labelAppVerion.Content = "App version: 1.1";
+            labelAppVerion.Content = "App version: 1.1.1";
 
             string mapOCXPath = $@"{AppDomain.CurrentDomain.BaseDirectory}\AxInterop.MapWinGIS.dll";
             FileVersionInfo ocxVersionInfo = FileVersionInfo.GetVersionInfo(mapOCXPath);
