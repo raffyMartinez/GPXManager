@@ -4,8 +4,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-
 namespace GPXManager.entities
 {
 
@@ -17,6 +15,12 @@ namespace GPXManager.entities
     }
     public class GPXFile
     {
+        private int _tripCount;
+        private bool _isArchived;
+        public GPXFile(string fileName)
+        {
+            FileName = fileName;
+        }
         public GPXFile(FileInfo fileInfo)
         {
             FileInfo = fileInfo;
@@ -64,11 +68,34 @@ namespace GPXManager.entities
         public DateTime DateModifiedUTC { get; set; }
         public string DriveName { get; set; }
         public GPS GPS { get; set; }
+
+        public List<Track> Tracks { get; internal set; }
         public List<WaypointLocalTime> TrackWaypoinsInLocalTime { get; internal set; } = new List<WaypointLocalTime>();
         public  List<int> ShapeIndexes { get; set; }
-        //public int ShapeIndex { get; set; }
+
+        public int TripCount
+        {
+            get 
+            {
+                return Entities.TripViewModel.TripCollection.Count(t=>t.GPXFileName==FileName); 
+            }
+            set
+            {
+                _tripCount = value;
+            }
+        }
+
         public List<WaypointLocalTime> NamedWaypointsInLocalTime { get; internal set; } = new List<WaypointLocalTime>();
 
+        public bool IsArchived
+        {
+            get
+            {
+                var exist = Entities.DeviceGPXViewModel.GetDeviceGPX(GPS, FileName) != null; 
+                return Entities.DeviceGPXViewModel.GetDeviceGPX(GPS, FileName) != null;
+            }
+            set { _isArchived = value; }
+        }
         public bool SavedToDatabase { get; internal set; }
         public long Size { get; set; }
         public bool ShownInMap { get; set; }
@@ -78,15 +105,25 @@ namespace GPXManager.entities
         public string TimeSpanHourMinute { get; internal set; }
         public DateTime DateRangeStart { get; internal set; }
         public DateTime DateRangeEnd { get; internal set; }
-        public void ComputeStats()
+        public void ComputeStats(DeviceGPX deviceGPX = null)
         {
             DateTime? trkDateStart = null;
             DateTime? trkDateEnd = null;
             DateTime? wptDateStart = null; 
             DateTime? wptDateEnd = null;
 
-            var tracks = Entities.TrackViewModel.ReadTracksFromFile($"{FileInfo.FullName}",GPS);
+
+            List<Track> tracks;
+            if (deviceGPX != null && deviceGPX.GPX .Length > 0)
+            {
+                tracks = Entities.TrackViewModel.ReadTracksFromXML(deviceGPX);
+            }
+            else
+            {
+                tracks = Entities.TrackViewModel.ReadTracksFromFile($"{FileInfo.FullName}", GPS);
+            }
             TrackCount = tracks.Count;
+            Tracks = tracks;
             if(TrackCount>0)
             {
                 trkDateStart = tracks[0].Waypoints[0].Time.AddHours(Global.Settings.HoursOffsetGMT) ;
@@ -107,28 +144,53 @@ namespace GPXManager.entities
                 }
             }
 
-            if (Entities.WaypointViewModel.Waypoints.Count>0 && Entities.WaypointViewModel.Waypoints.ContainsKey(GPS))
+            if (deviceGPX != null)
             {
-                var waypoints = Entities.WaypointViewModel.Waypoints[GPS]
-                    .Where(t => t.FileName == FileInfo.Name)
-                    .FirstOrDefault();
-                if (waypoints == null)
+                var waypoints = Entities.WaypointViewModel.ReadWaypointFromDeviceGPX(deviceGPX);
+                if(waypoints==null)
                 {
                     WaypointCount = 0;
                 }
                 else
                 {
-                    WaypointCount = waypoints.Waypoints.Count;
+                    WaypointCount = waypoints.Count;
                 }
-
                 if (WaypointCount > 0)
                 {
-                    wptDateStart = waypoints.Waypoints[0].Time.AddHours(Global.Settings.HoursOffsetGMT);
-                    wptDateEnd = waypoints.Waypoints[WaypointCount - 1].Time.AddHours(Global.Settings.HoursOffsetGMT);
+                    wptDateStart = waypoints[0].Time.AddHours(Global.Settings.HoursOffsetGMT);
+                    wptDateEnd = waypoints[WaypointCount - 1].Time.AddHours(Global.Settings.HoursOffsetGMT);
 
-                    foreach(var pt in waypoints.Waypoints)
+                    foreach (var pt in waypoints)
                     {
                         NamedWaypointsInLocalTime.Add(new WaypointLocalTime(pt));
+                    }
+                }
+            }
+            else
+            {
+                if (Entities.WaypointViewModel.Waypoints.Count > 0 && Entities.WaypointViewModel.Waypoints.ContainsKey(GPS))
+                {
+                    var waypoints = Entities.WaypointViewModel.Waypoints[GPS]
+                        .Where(t => t.FileName == FileInfo.Name)
+                        .FirstOrDefault();
+                    if (waypoints == null)
+                    {
+                        WaypointCount = 0;
+                    }
+                    else
+                    {
+                        WaypointCount = waypoints.Waypoints.Count;
+                    }
+
+                    if (WaypointCount > 0)
+                    {
+                        wptDateStart = waypoints.Waypoints[0].Time.AddHours(Global.Settings.HoursOffsetGMT);
+                        wptDateEnd = waypoints.Waypoints[WaypointCount - 1].Time.AddHours(Global.Settings.HoursOffsetGMT);
+
+                        foreach (var pt in waypoints.Waypoints)
+                        {
+                            NamedWaypointsInLocalTime.Add(new WaypointLocalTime(pt));
+                        }
                     }
                 }
             }

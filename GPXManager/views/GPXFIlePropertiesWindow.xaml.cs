@@ -12,7 +12,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using WpfApp1;
+using GPXManager;
 using System.ComponentModel;
 using System.Runtime.Remoting.Messaging;
 using System.IO;
@@ -39,7 +39,14 @@ namespace GPXManager.views
  
             
             labelTrackCount.Content= GPXFile.TrackCount.ToString();
-            labelFileName.Content= GPXFile.FileInfo.FullName;
+            if (GPXFile.FileInfo != null)
+            {
+                labelFileName.Content = GPXFile.FileInfo.FullName;
+            }
+            else
+            {
+                labelFileName.Content = GPXFile.FileName;
+            }
 
 
 
@@ -48,12 +55,7 @@ namespace GPXManager.views
                 labelWaypointLabel.Content = "Number of waypoints";
                 labelWaypointCount.Content = GPXFile.WaypointCount.ToString();
                 labelGPXType.Content = "Waypoints";
-                var wpts = new List<WaypointLocalTime>();
-                foreach(var wpt in GPSWaypointSet.Waypoints)
-                {
-                    wpts.Add(new WaypointLocalTime(wpt));
-                }
-                dataGridNamedWaypoints.DataContext = wpts;
+                dataGridNamedWaypoints.DataContext = GPXFile.NamedWaypointsInLocalTime;
             }
             else
             {
@@ -82,6 +84,8 @@ namespace GPXManager.views
         {
             this.SavePlacement(); 
         }
+
+        public GPXFile GPXFile { get; set; }
         public GPSWaypointSet GPSWaypointSet { get; set; }
         public void Dispose()
         {
@@ -94,7 +98,6 @@ namespace GPXManager.views
             this.ApplyPlacement();
         }
         public MainWindow ParentWindow { get; set; }
-        public GPXFile GPXFile { get; set; }
         private void OnButtonClicked(object sender, RoutedEventArgs e)
         {
             switch(((Button)sender).Name)

@@ -14,7 +14,7 @@ using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using Ookii.Dialogs.Wpf;
-using WpfApp1;
+using GPXManager;
 using GPXManager.entities;
 using Microsoft.Win32;
 using System.ComponentModel;

@@ -81,7 +81,7 @@
                 </Button>
 
                 <Button x:Name="buttonDataScreen" Click="OnToolbarButtonClick" ToolTip="Hide map window">
-                    <Image Source="data screen.png" OpacityMask="White" />
+                    <Image Source="map screen grey.png" OpacityMask="White" />
                 </Button>
 
 

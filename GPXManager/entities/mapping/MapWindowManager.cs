@@ -21,7 +21,9 @@ namespace GPXManager.entities.mapping
 {
     public static class MapWindowManager
     {
+        private static List<int> _selectedShapedIDs;
         public static ShapeFileAttributesWindow ShapeFileAttributesWindow { get; set; }
+
         public static MapLayersWindow MapLayersWindow { get; set; }
         public static MapWindowForm MapWindowForm { get; private set; }
 
@@ -29,7 +31,7 @@ namespace GPXManager.entities.mapping
 
         public static MapLayer GPXWaypointsLayer { get; set; }
 
-
+        public static MapLayersViewModel MapLayersViewModel { get; set; }
         public static MapLayersHandler MapLayersHandler { get; private set; }
         public static MapInterActionHandler MapInterActionHandler { get; private set; }
         public static Shapefile Coastline { get; private set; }
@@ -37,12 +39,19 @@ namespace GPXManager.entities.mapping
         public static Dictionary<int, string> TileProviders { get; set; } = new Dictionary<int, string>();
         public static void CleanUp(bool applicationIsClosing = false)
         {
+            if (MapLayersViewModel != null)
+            {
+                MapLayersViewModel.CleanUp();
+                MapLayersViewModel = null;
+            }
+
             MapInterActionHandler = null; 
             MapLayersHandler = null; ;
             MapControl = null;
             Coastline = null;
             MapWindowForm = null;
             MapLayersWindow = null;
+            ShapeFileAttributesWindow = null;
             GPXTracksLayer = null;
             GPXWaypointsLayer = null;
 
@@ -59,25 +68,26 @@ namespace GPXManager.entities.mapping
             TileProviders.Add(0, "OpenStreetMap");
             TileProviders.Add(1, "OpenCycleMap");
             TileProviders.Add(2, "OpenTransportMap");
-            TileProviders.Add(3, "BingMaps");
-            TileProviders.Add(4, "BingSatellite");
-            TileProviders.Add(5, "BingHybrid");
+            //TileProviders.Add(3, "BingMaps");
+            //TileProviders.Add(4, "BingSatellite");
+            //TileProviders.Add(5, "BingHybrid");
             TileProviders.Add(6, "GoogleMaps");
-            TileProviders.Add(7, "GoogleSatellite");
-            TileProviders.Add(8, "GoogleHybrid");
+            //TileProviders.Add(7, "GoogleSatellite");
+            //TileProviders.Add(8, "GoogleHybrid");
             TileProviders.Add(9, "GoogleTerrain");
-            TileProviders.Add(10, "HereMaps");
-            TileProviders.Add(11, "HereSatellite");
-            TileProviders.Add(12, "HereHybrid");
-            TileProviders.Add(13, "HereTerrain");
-            TileProviders.Add(21, "Rosreestr");
+            //TileProviders.Add(10, "HereMaps");
+            //TileProviders.Add(11, "HereSatellite");
+            //TileProviders.Add(12, "HereHybrid");
+            //TileProviders.Add(13, "HereTerrain");
+            //TileProviders.Add(21, "Rosreestr");
             TileProviders.Add(22, "OpenHumanitarianMap");
-            TileProviders.Add(23, "MapQuestAerial");
+            //TileProviders.Add(23, "MapQuestAerial");
 
-
+            CoastlineFile = $@"{globalMapping.ApplicationPath}\Layers\Coastline\philippines_polygon.shp";
         }
         public static MapWindowForm OpenMapWindow(MainWindow ownerWindow, string coastlineShapefile = "")
         {
+
             MapWindowForm mwf = MapWindowForm.GetInstance();
             if (mwf.Visibility == Visibility.Visible)
             {
@@ -86,6 +96,7 @@ namespace GPXManager.entities.mapping
             else
             {
                 MapWindowForm = mwf;
+                MapWindowForm.LocationChanged += MapWindowForm_LocationChanged;
                 MapWindowForm.Closing += MapWindowForm_Closing;
                 MapWindowForm.Owner = ownerWindow;
                 MapWindowForm.ParentWindow = ownerWindow;
@@ -93,10 +104,10 @@ namespace GPXManager.entities.mapping
                 MapControl = MapWindowForm.MapControl;
                 MapLayersHandler = MapWindowForm.MapLayersHandler;
                 MapInterActionHandler = MapWindowForm.MapInterActionHandler;
-
+                ShapefileAttributeTableManager.MapInterActionHandler = MapInterActionHandler;
                 AOIManager.Setup();
 
-                if (Coastline == null &&  coastlineShapefile.Length > 0)
+                if (Coastline == null && coastlineShapefile.Length > 0)
                 {
                     LoadCoastline(coastlineShapefile);
                 }
@@ -114,9 +125,24 @@ namespace GPXManager.entities.mapping
                 ShapeFileAttributesWindow.Visibility = Visibility.Visible;
                 ShapeFileAttributesWindow.BringIntoView();
             }
-
+            MapLayersViewModel = new MapLayersViewModel(MapLayersHandler);
 
             return mwf;
+        }
+
+
+        private static void MapWindowForm_LocationChanged(object sender, EventArgs e)
+        {
+         if(MapLayersWindow!=null)
+            {
+                MapLayersWindow.Left = MapWindowForm.Left - MapLayersWindow.Width;
+                MapLayersWindow.Top = MapWindowForm.Top ;
+            }
+
+         if(ShapeFileAttributesWindow!=null)
+            {
+
+            }
         }
 
         public static void RestoreMapState(MapWindowForm mwf)
@@ -169,7 +195,11 @@ namespace GPXManager.entities.mapping
                                     }
                                     else
                                     {
-                                        MapControl.TileProvider = (tkTileProvider)Enum.Parse(typeof(tkTileProvider), reader.GetAttribute("Provider"));
+                                        string tileProvider = reader.GetAttribute("Provider");
+                                        if (tileProvider!=null &&  tileProvider.Length > 0)
+                                        {
+                                            MapControl.TileProvider = (tkTileProvider)Enum.Parse(typeof(tkTileProvider), tileProvider);
+                                        }
                                     }
                                     break;
                                 case "Layer":
@@ -286,8 +316,11 @@ namespace GPXManager.entities.mapping
         }
         public static void ResetCursor()
         {
-            MapControl.CursorMode = tkCursorMode.cmNone;
-            MapControl.MapCursor = tkCursor.crsrArrow;
+            if (MapControl != null)
+            {
+                MapControl.CursorMode = tkCursorMode.cmNone;
+                MapControl.MapCursor = tkCursor.crsrArrow;
+            }
         }
 
         public static void ZoomToShapeFileExtent(Shapefile sf)
@@ -296,6 +329,7 @@ namespace GPXManager.entities.mapping
             MapControl.Redraw();
         }
 
+        public static string CoastlineFile { get; set; }
         public static void SetLayerVisibility(int layerHandle, bool visibility)
         {
 
@@ -333,9 +367,67 @@ namespace GPXManager.entities.mapping
             MapWindowForm = null;
         }
 
+        public static List<int> SelectedAttributeRows
+        {
+            get { return _selectedShapedIDs; }
+            set
+            {
+                _selectedShapedIDs = value;
+                var sf = (Shapefile)MapLayersHandler.CurrentMapLayer.LayerObject;
+                sf.SelectNone();
+                foreach(var h in _selectedShapedIDs)
+                {
+                    sf.ShapeSelected[h] = true;
+                }
+                MapLayersHandler.MapControl.Redraw();
+            }
+        }
+
         public static void RemoveLayerByKey(string key)
         {
             MapLayersHandler.RemoveLayerByKey(key);
+        }
+
+        public static int MapTrip(Trip trip, out int shpIndex, out List<int> handles, bool showInMap = true)
+        {
+            shpIndex = -1;
+            handles = new List<int>();
+            var utils = new MapWinGIS.Utils();
+            var shpfileName = "";
+            if (showInMap)
+            {
+                if(trip.Track.Waypoints.Count>0)
+                {
+                    Shapefile sf = null;
+                    sf = ShapefileFactory.TrackFromTrip(trip, out handles);
+                    shpfileName = "Trip tracks";
+                    MapLayersHandler.AddLayer(sf, shpfileName, uniqueLayer: true, layerKey: sf.Key, rejectIfExisting: true);
+                }
+
+                
+            }
+            return MapLayersHandler.CurrentMapLayer.Handle;
+        }
+
+        public static int MapTripWaypoints(List<TripWaypoint>waypoints, out int shpIndex, out List<int>handles,  GPS gps, string filename,bool showInMap=true)
+        {
+            shpIndex = -1;
+            handles = new List<int>();
+            var utils = new MapWinGIS.Utils();
+            var shpfileName = "";
+            if (showInMap)
+            {
+                if (waypoints.Count > 0)
+                {
+                    Shapefile sf = null;
+                    sf = ShapefileFactory.PointsFromWayPointList(waypoints, out handles,gps.DeviceName,filename);
+                    shpfileName = "Trip waypoints";
+                    int h = MapLayersHandler.AddLayer(sf, shpfileName, uniqueLayer: true, layerKey: sf.Key, rejectIfExisting: true);
+                }
+
+
+            }
+            return MapLayersHandler.CurrentMapLayer.Handle;
         }
 
         public static int MapGPX(GPXFile gpxFile,  out int shpIndex,  out List<int>handles,  bool showInMap = true)

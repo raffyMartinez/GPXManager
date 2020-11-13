@@ -12,7 +12,7 @@
             <RowDefinition/>
             <RowDefinition Height="50"/>
         </Grid.RowDefinitions>
-        <Label Content="This is the label" Margin="10 0"/>
+        <Label Content="This is the label" Margin="10 0" x:Name="labelTitle"/>
         <DataGrid x:Name="dataGridAttributes" Margin="10 10" Grid.Row="1" AutoGenerateColumns="True" ItemsSource="{Binding}" 
                   CanUserAddRows="False" SelectionChanged="OnDataGridSelectionChanged"/>
         <WrapPanel Grid.Row="2" HorizontalAlignment="Right" VerticalAlignment="Center">

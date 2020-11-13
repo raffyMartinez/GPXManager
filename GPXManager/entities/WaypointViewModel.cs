@@ -44,7 +44,7 @@ namespace GPXManager.entities
         public void ReadWaypointsFromRepository()
         {
 
-            var dict = Entities.DeviceWaypointGPXViewModel.DeviceWptGPXCollection
+            var dict = Entities.DeviceGPXViewModel.DeviceGPXCollection
                 .GroupBy(t => t.GPS)
                 .ToDictionary(g => g.Key, g => g.ToList());
 
@@ -86,6 +86,28 @@ namespace GPXManager.entities
                 }
                 Waypoints.Add(set.Key, listGPSWptSet);
             }
+        }
+
+        public List<Waypoint>ReadWaypointFromDeviceGPX(DeviceGPX deviceGPX)
+        {
+            List<Waypoint> wpts = new List<Waypoint>();
+            using (XmlReader reader = XmlReader.Create(new StringReader(deviceGPX.GPX)))
+            {
+                while (reader.Read())
+                {
+                    if (reader.IsStartElement())
+                    {
+                        if (reader.Name == "wpt")
+                        {
+                            Waypoint namedWaypoint = new Waypoint();
+                            namedWaypoint.Read(reader);
+                            namedWaypoint.GPXFileName = Path.GetFileName(deviceGPX.Filename);
+                            wpts.Add(namedWaypoint);
+                        }
+                    }
+                }
+            }
+            return wpts;
         }
         public List<Waypoint> ReadWaypointsFromFile(string filename, GPS gps)
         {

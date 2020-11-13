@@ -52,7 +52,8 @@ namespace GPXManager.entities
                                 Gear = dr["Gear"] == DBNull.Value ? null : Entities.GearViewModel.GetGear(dr["Gear"].ToString()),
                                 OtherGear = dr["OtherGear"].ToString(),
                                 Track = track,
-                                Notes = dr["Notes"].ToString()
+                                Notes = dr["Notes"].ToString(),
+                                GPXFileName = dr["GPXFileName"].ToString()
                             };
                             thisList.Add(t);
                         }
@@ -103,7 +104,7 @@ namespace GPXManager.entities
                               '{t.Track.XMLString}',
                               '{t.Notes}',
                               '{DateTime.Now.ToString("dd-MMM-yyyy HH:mm:ss")}',
-                              '{t.Track.FileName}' 
+                              '{t.GPXFileName}' 
                            )";
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {

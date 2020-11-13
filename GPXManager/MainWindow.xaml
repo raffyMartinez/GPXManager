@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:WpfApp1"
+        xmlns:local="clr-namespace:GPXManager"
         mc:Ignorable="d"
         Title="GPX Manager" Height="450" Width="800" WindowState="Maximized" Foreground="{x:Null}">
 
@@ -38,7 +38,12 @@
                 <MenuItem Header="GPS models" x:Name="menuGPSModels" Click="OnMenuClick" Visibility="Collapsed"/>
                 <MenuItem Header="Trip calendar" x:Name="menuTripCalendar" Click="OnMenuClick" Visibility="Visible">
                     <MenuItem.Icon>
-                        <Image Source="calendar2.png" OpacityMask="White" />
+                        <Image Source="calendar3.png" OpacityMask="White" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Archive" x:Name="menuArchive" Click="OnMenuClick" Visibility="Visible">
+                    <MenuItem.Icon>
+                        <Image Source="archive.png" OpacityMask="White" />
                     </MenuItem.Icon>
                 </MenuItem>
                 <MenuItem Header="Settings" x:Name="menuOptions" Click="OnMenuClick" Visibility="Visible">
@@ -53,72 +58,100 @@
                     </MenuItem.Icon>
                 </MenuItem>
             </MenuItem>
+            <MenuItem Header="Help">
+                <MenuItem Header="About" x:Name="menuHelpAbout" Click="OnMenuClick"/>
+            </MenuItem>
         </Menu>
         <ToolBarTray Grid.Row="1" Height="34">
             <ToolBar Height="32" Width="Auto" >
-                <Button x:Name="buttonUSB" Click="OnToolbarButtonClick" ToolTip="Scan USB">
-                    <Image Source="uisb.png" OpacityMask="White" />
-                </Button>
                 <Button x:Name="buttonMap" Click="OnToolbarButtonClick" ToolTip="Open map">
                     <Image Source="map screen.png" OpacityMask="White" />
                 </Button>
+                <Button x:Name="buttonUSB" Click="OnToolbarButtonClick" ToolTip="Scan USB storage">
+                    <Image Source="uisb.png" OpacityMask="White" />
+                </Button>
+                <Button x:Name="buttonEjectUSB" Click="OnToolbarButtonClick" ToolTip="Scan USB storage" Visibility="Collapsed">
+                    <Image Source="eject usb.png" OpacityMask="White" />
+                </Button>                
                 <Button x:Name="buttonCalendar" Click="OnToolbarButtonClick" ToolTip="Trip calendar">
-                    <Image Source="calendar2.png" OpacityMask="White" />
+                    <Image Source="calendar3.png" OpacityMask="White" />
+                </Button>
+                <Button x:Name="buttonArchive" Click="OnToolbarButtonClick" ToolTip="Archive">
+                    <Image Source="archive.png" OpacityMask="White" />
                 </Button>                
                 <Button x:Name="buttonUploadCloud" Click="OnToolbarButtonClick" ToolTip="Upload to cloud">
                     <Image Source="upload to cloud.png" OpacityMask="White" />
                 </Button>
-                <Button x:Name="buttonArchive" Click="OnToolbarButtonClick" ToolTip="Archive">
-                    <Image Source="archive.png" OpacityMask="White" />
-                </Button>
+
                 <Button x:Name="buttonSettings" Click="OnToolbarButtonClick" ToolTip="Settings">
                     <Image Source="gears.png" OpacityMask="White" />
                 </Button>
                 <Button x:Name="buttonExit" Click="OnToolbarButtonClick" ToolTip="Close">
                     <Image Source="exit.png" OpacityMask="White" />
                 </Button>
-             
+
             </ToolBar>
         </ToolBarTray>
         <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="74.867"/>
+                <ColumnDefinition Width="51.736"/>
+                <ColumnDefinition Width="23.464"/>
                 <ColumnDefinition Width="12.333"/>
                 <ColumnDefinition Width="212.517"/>
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
-            <Border BorderThickness="1" BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}" Grid.ColumnSpan="3" Margin="0,0,0,-0.2">
+            <Border BorderThickness="1" BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}" Grid.ColumnSpan="4" Margin="0,0,0,-0.2">
                 <StackPanel>
                     <TreeView ScrollViewer.HorizontalScrollBarVisibility="Disabled" x:Name="treeDevices"  SelectedItemChanged="OnTreeViewSelectedItemChange" Background="{x:Null}" BorderBrush="{x:Null}" Foreground="{x:Null}">
                         <TreeViewItem Header="Devices" Tag="root" Background="{x:Null}"/>
                     </TreeView>
-                    <TreeView x:Name="treeCalendar" Visibility="Collapsed" SelectedItemChanged="OnCalendarTreeViewSelectedItemChange" BorderBrush="{x:Null}" Foreground="{x:Null}">
+                    <TreeView x:Name="treeCalendar" Visibility="Collapsed" SelectedItemChanged="OnTreeViewSelectedItemChange" BorderBrush="{x:Null}" Foreground="{x:Null}">
                         <TreeViewItem Header="Trip calendar" Tag="root"/>
                         <TreeViewItem Header="Trips by GPS" Tag="root"/>
                     </TreeView>
+                    <TreeView x:Name="treeArchive" Visibility="Collapsed" SelectedItemChanged="OnTreeViewSelectedItemChange"  BorderBrush="{x:Null}" Foreground="{x:Null}">
+                        
+                    </TreeView>
                 </StackPanel>
             </Border>
-            <StackPanel Grid.Column="3" x:Name="panelMain" Margin="0,0,-0.4,-0.2">
-                <Label x:Name="labelTitle" Margin="10 0 0 0" Content="This is the label title"/>
+            <StackPanel Grid.Column="4" x:Name="panelMain" Margin="0,0,-0.4,-0.2">
+                <Label x:Name="labelTitle" Margin="10 0 0 0" Content="This is the label title" FontWeight="Bold" FontSize="14"/>
                 <Label x:Name="labelDeviceName" Margin="10,0" Content="Device name" FontSize="12" FontWeight="Bold" Visibility="Collapsed"/>
                 <TextBlock x:Name="textBlock" Margin="10 0" Visibility="Visible" Text="this is a text block"  Foreground="{DynamicResource {x:Static SystemColors.ActiveCaptionTextBrushKey}}" HorizontalAlignment="Left"/>
                 <Label x:Name="labelNoData" Margin="10" Visibility="Collapsed"
                        Content="There is no data" HorizontalContentAlignment="Center" FontSize="20" FontWeight="Bold"/>
-
-                <xctk:PropertyGrid x:Name="PropertyGrid" ShowSearchBox="False" ShowSortOptions="False"
-                               AutoGenerateProperties="False" Visibility="Collapsed" 
+                
+                <StackPanel x:Name="gpsPanel" Visibility="Collapsed">
+                    <xctk:PropertyGrid x:Name="PropertyGrid" ShowSearchBox="False" ShowSortOptions="False"
+                               AutoGenerateProperties="False" Visibility="Visible" 
                                ShowSummary="True" MouseDoubleClick="OnPropertyMouseDblClick" 
                                SelectedPropertyItemChanged="OnPropertyChanged" PropertyValueChanged="OnPropertyValueChanged"
                                    Margin="10" Foreground="{DynamicResource {x:Static SystemColors.ActiveCaptionTextBrushKey}}"/>
+                    <Button x:Name="buttonEjectDevice" Height="30" Width="60" Click="OnButtonClick" Content="Eject">
+                        
+                    </Button>
+                </StackPanel>                    
 
                 <DataGrid x:Name="dataGridCalendar" Visibility="Collapsed" Margin="10" 
                           ItemsSource="{Binding}" AutoGenerateColumns="True" IsReadOnly="True"
                           SelectionMode="Single" SelectionUnit="Cell" AutoGeneratedColumns="OnGridAutogeneratedColumns"
                           MouseDoubleClick="OnGridDoubleClick"/>
 
-                <DataGrid x:Name="dataGridGPSSummary" Visibility="Collapsed" Margin="10"
+
+                <DataGrid x:Name="dataGridGPSSummary" Visibility="Visible" Margin="10"
                           ItemsSource="{Binding}" AutoGenerateColumns="True" IsReadOnly="True"
-                          MouseDoubleClick="OnGPSGridDoubleClick" SelectionChanged="OnDataGridSelectionChanged"/>
+                          MouseDoubleClick="OnGPSGridDoubleClick" SelectionChanged="OnDataGridSelectionChanged">
+                    <DataGrid.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="Show in map" Click="OnMenuClick" x:Name="menuCalendaredTripMap" Visibility="Visible">
+                                <MenuItem.Icon>
+                                    <Image Source="map screen.png" OpacityMask="White" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+                        </ContextMenu>
+                    </DataGrid.ContextMenu>
+                </DataGrid>
+
 
 
                 <StackPanel x:Name="gpxPanel" Margin="10 10 10 20" Visibility="Collapsed">
@@ -129,14 +162,19 @@
                             <ContextMenu>
                                 <MenuItem Header="Add trip based on track" Click="OnMenuClick" x:Name="menuAddTripFromTRack" Visibility="Visible"/>
                                 <MenuItem Header="Details" Click="OnMenuClick" x:Name="menuGPXFileDetails" Visibility="Visible"/>
-                                <MenuItem Header="Show in map" Click="OnMenuClick" x:Name="menuGPXMap" Visibility="Visible"/>
+                                <MenuItem Header="Show in map" Click="OnMenuClick" x:Name="menuGPXMap" Visibility="Visible">
+                                    <MenuItem.Icon>
+                                        <Image Source="map screen.png" OpacityMask="White" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
                                 <MenuItem Header="Remove from map" Click="OnMenuClick" x:Name="menuGPXRemoveFromMap" Visibility="Collapsed"/>
                                 <MenuItem Header="Remove all from map" Click="OnMenuClick" x:Name="menuGPXRemoveAllFromMap" Visibility="Collapsed"/>
                             </ContextMenu>
                         </DataGrid.ContextMenu>
                     </DataGrid>
                     <WrapPanel HorizontalAlignment="Center">
-                        <Button x:Name="buttonGPXDetails" Height="30" Width="75" Click="OnButtonClick" Content="Details"/>
+                        <Button x:Name="buttonArchiveGPX" Height="30" Width="75" Click="OnButtonClick" Content="Archive" Visibility="Collapsed" Margin="10 0"/>
+                        <Button x:Name="buttonGPXDetails" Height="30" Width="75" Click="OnButtonClick" Content="Details" Margin="10 0"/>
                     </WrapPanel>
                 </StackPanel>
 
@@ -147,7 +185,17 @@
                 <StackPanel Margin="20 0 0 0" x:Name="tripPanel" Visibility="Collapsed">
 
                     <DataGrid x:Name="dataGridTrips" ItemsSource="{Binding}" CanUserAddRows="False" AutoGenerateColumns="False" 
-                              Margin="0 0 10 20" SelectionChanged="OnDataGridSelectionChanged" IsReadOnly="True" MouseDoubleClick="OnGridDoubleClick"/>
+                              Margin="0 0 10 20" SelectionChanged="OnDataGridSelectionChanged" IsReadOnly="True" MouseDoubleClick="OnGridDoubleClick">
+                        <DataGrid.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Show in map" Click="OnMenuClick" x:Name="menuTripMap" Visibility="Visible">
+                                    <MenuItem.Icon>
+                                        <Image Source="map screen.png" OpacityMask="White" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                            </ContextMenu>
+                        </DataGrid.ContextMenu>
+                    </DataGrid>
 
                     <WrapPanel HorizontalAlignment="Center" Margin="0 0 10 0">
                         <Button Height="30" Width="75" x:Name="buttonAddTrip" Click="OnButtonClick" Content="Add" Margin="20 0 20 0"/>

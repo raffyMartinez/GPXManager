@@ -15,6 +15,33 @@ namespace GPXManager.entities
         {
             Tracks = new Dictionary<GPS, List<Track>>();
         }
+
+        public List<Track> ReadTracksFromXML(DeviceGPX deviceGPX)
+        {
+            string xml = deviceGPX.GPX;
+            GPS gps = deviceGPX.GPS;
+            string fileName = deviceGPX.Filename;
+            var trackList = new List<Track>();
+            using (XmlReader reader = XmlReader.Create(new StringReader(xml)))
+            {
+                while (reader.Read())
+                {
+                    if (reader.IsStartElement())
+                    {
+                        if (reader.Name == "trk")
+                        {
+                            Track trk = new Track();
+                            trk.GPS = gps;
+                            trk.FileName = Path.GetFileName(fileName);
+                            trk.IsRoute = false;
+                            trk.Read(reader);
+                            trackList.Add(trk);
+                        }
+                    }
+                }
+            }
+            return trackList;
+        }
         public List<Track> ReadTracksFromFile(string filename,GPS gps)
         {
             if(Tracks==null)

@@ -34,6 +34,7 @@ namespace GPXManager.entities
             TripWaypoints = trip.TripWaypoints;
             Track = trip.Track;
             Notes = trip.Notes;
+            GPXFileName = trip.GPXFileName;
 
         }
 
@@ -63,6 +64,8 @@ namespace GPXManager.entities
 
         [ItemsSource(typeof(GearItemsSource))]
         public string GearCode { get; set; }
+
+        public string GPXFileName { get; set; }
 
         public string Notes { get; set; }
 
@@ -97,7 +100,7 @@ namespace GPXManager.entities
         
         public Track Track { get; set; }
         public Gear Gear { get; set; }
-
+        public string GPXFileName { get; set; }
         public string DeviceID
         {
             get { return _deviceID; }
@@ -135,6 +138,9 @@ namespace GPXManager.entities
         }
         public List<TripWaypointLite> TripWaypoints { get; set; }
 
+        public List<int> ShapeIndexes { get; set; }
+
+        public bool ShownInMap { get; set; }
         public string TrackSummary
         {
             get

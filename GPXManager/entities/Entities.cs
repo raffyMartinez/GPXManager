@@ -25,13 +25,15 @@ namespace GPXManager.entities
 
         public static TrackViewModel TrackViewModel { get; set; }
 
-        public static DeviceWaypointGPXViewModel DeviceWaypointGPXViewModel { get; set; }
+        public static DeviceGPXViewModel DeviceGPXViewModel { get; set; }
 
         public static AOIViewModel AOIViewModel { get; set; }
 
+
+
         public static bool ClearTables()
         {
-            var result = DeviceWaypointGPXViewModel.ClearRepository();
+            var result = DeviceGPXViewModel.ClearRepository();
 
             if (result)
             {

@@ -126,6 +126,14 @@ namespace GPXManager.entities
             get { return TripCollection.Count; }
         }
 
+        public void MarkAllNotShownInMap()
+        {
+            foreach(var item in TripCollection.Where(t => t.ShownInMap))
+            {
+                item.ShownInMap = false;
+            }
+        }
+
         public bool AddRecordToRepo(Trip trip)
         {
             if (trip == null)

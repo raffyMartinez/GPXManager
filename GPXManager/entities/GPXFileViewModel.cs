@@ -13,6 +13,7 @@ namespace GPXManager.entities
 {
     public class GPXFileViewModel
     {
+        private List<GPS> _gpsFinishedReadingFiles = new List<GPS>();
         public ObservableCollection<GPXFile> GPXFileCollection { get; set; }
         public GPXFileViewModel()
         {
@@ -20,6 +21,13 @@ namespace GPXManager.entities
             GPXFileCollection.CollectionChanged += GPXFileCollection_CollectionChanged;
         }
 
+        public GPXFile ConvertToGPXFile(DeviceGPX deviceGPX )
+        {
+            GPXFile gpxFile = new GPXFile(deviceGPX.Filename);
+            gpxFile.GPS = deviceGPX.GPS;
+            gpxFile.ComputeStats(deviceGPX);
+            return gpxFile;
+        }
         public Dictionary<DateTime,List<GPXFile>>FilesByMonth(GPS gps)
         {
             return GPXFileCollection
@@ -28,14 +36,36 @@ namespace GPXManager.entities
                 .GroupBy(o => o.MonthYear)
                 .ToDictionary(g => g.Key, g => g.ToList());
         }
-
+        public void MarkAllNotShownInMap()
+        {
+            foreach (var item in GPXFileCollection.Where(t => t.ShownInMap))
+            {
+                item.ShownInMap = false;
+            }
+        }
         public List<GPXFile>GetFiles(string deviceID)
         {
-            if(GPXFileCollection.Where(t=>t.GPS.DeviceID==deviceID).ToList().Count==0)
-            {
-                GetFilesFromDevice(Entities.DetectedDeviceViewModel.GetDevice(deviceID));
-            }
+            GetFilesFromDevice(Entities.DetectedDeviceViewModel.GetDevice(deviceID));
             return GPXFileCollection.Where(t => t.GPS.DeviceID == deviceID).ToList();
+        }
+
+        public GPXFile GetFile (GPS gps, string fileName)
+        {
+            return GPXFileCollection
+                .Where(t => t.GPS.DeviceID == gps.DeviceID)
+                .Where(t => t.FileName == fileName)
+                .FirstOrDefault();
+        }
+
+        public List<GPXFile> GetFiles(string deviceID, DateTime monthYear)
+        {
+            GetFilesFromDevice(Entities.DetectedDeviceViewModel.GetDevice(deviceID));
+            return GPXFileCollection
+                .Where(t => t.GPS.DeviceID == deviceID)
+                .Where(t => t.DateRangeStart > monthYear)
+                .Where(t => t.DateRangeEnd < monthYear.AddMonths(1))
+                .ToList();
+            //return thisList;
         }
 
         public void Clear()
@@ -80,33 +110,50 @@ namespace GPXManager.entities
             get { return GPXFileCollection.Count; }
         }
 
-        public void GetFilesFromDevice(DetectedDevice device)
+        public List<FileInfo>GetGPXFilesFromGPS(DetectedDevice device)
         {
             var gpxFolder = $"{device.Disks[0].Caption }\\{ device.GPS.Folder}";
             if (Directory.Exists(gpxFolder))
             {
-                List<FileInfo> myFiles = new DirectoryInfo(gpxFolder)
+                return new DirectoryInfo(gpxFolder)
                     .EnumerateFiles()
                     .Where(f => f.Extension == ".gpx").ToList();
 
+            }
+            return null;
+        }
 
-                foreach (var file in myFiles)
+        public void GetFilesFromDevice(DetectedDevice device)
+        {
+            if (!_gpsFinishedReadingFiles.Contains(device.GPS))
+            {
+                var gpxFolder = $"{device.Disks[0].Caption }\\{ device.GPS.Folder}";
+                if (Directory.Exists(gpxFolder))
                 {
-                    Entities.WaypointViewModel.ReadWaypointsFromFile(file.FullName, device.GPS);
+                    List<FileInfo> myFiles = new DirectoryInfo(gpxFolder)
+                        .EnumerateFiles()
+                        .Where(f => f.Extension == ".gpx").ToList();
 
-                    GPXFile gf = new GPXFile(file)
+
+                    foreach (var file in myFiles)
                     {
-                        GPS = device.GPS,
-                        DriveName = device.Disks[0].Caption
-                    };
+                        Entities.WaypointViewModel.ReadWaypointsFromFile(file.FullName, device.GPS);
+
+                        GPXFile gf = new GPXFile(file)
+                        {
+                            GPS = device.GPS,
+                            DriveName = device.Disks[0].Caption
+                        };
 
 
-                    if (!Contains(gf))
-                    {
-                        Add(gf);
-                        gf.ComputeStats();
+                        if (!Contains(gf))
+                        {
+                            Add(gf);
+                            gf.ComputeStats();
+                        }
                     }
                 }
+                _gpsFinishedReadingFiles.Add(device.GPS);
             }
         }
         public void Add(GPXFile file)

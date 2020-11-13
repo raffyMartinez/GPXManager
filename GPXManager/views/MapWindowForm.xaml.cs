@@ -21,7 +21,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using WpfApp1;
+//using WpfApp1;
 using Xceed.Wpf.AvalonDock.Controls;
 using WindowMenuItem = System.Windows.Controls.MenuItem;
 
@@ -31,11 +31,11 @@ namespace GPXManager.views
     /// Interaction logic for MapWindowForm.xaml
     /// </summary>
     /// 
-   
+
     public partial class MapWindowForm : Window
     {
 
-        private static MapWindowForm  _instance;
+        private static MapWindowForm _instance;
 
         public AxMapWinGIS.AxMap MapControl { get; set; }
         public MapWindowForm()
@@ -62,6 +62,8 @@ namespace GPXManager.views
             this.SavePlacement();
 
             GPXMappingManager.RemoveAllFromMap();
+            TripMappingManager.Cleanup();
+            GPXMappingManager.Cleanup();
             ParentWindow.ResetDataGrids();
             MapWindowManager.CleanUp();
             ParentWindow.Focus();
@@ -85,11 +87,16 @@ namespace GPXManager.views
             MapWindowManager.RestoreMapState(this);
             menuMapTilesVisible.IsChecked = MapControl.TileProvider != tkTileProvider.ProviderNone;
             menuMapTilesSelectProvider.IsEnabled = MapControl.TileProvider != tkTileProvider.ProviderNone;
-            menuMapCoastlineVisible.IsChecked = MapLayersHandler.get_MapLayer("Coastline").Visible;
+            if (MapLayersHandler.get_MapLayer("Coastline") != null)
+            {
+                menuMapCoastlineVisible.IsChecked = MapLayersHandler.get_MapLayer("Coastline").Visible;
+            }
             MapWindowManager.ResetCursor();
 
             MapInterActionHandler.ShapesSelected += OnMapShapeSelected;
             MapLayersHandler.CurrentLayer += OnMapCurrentLayer;
+            GPXMappingManager.MapInteractionHandler = MapInterActionHandler;
+            TripMappingManager.MapInteractionHandler = MapInterActionHandler;
         }
 
         private void OnMapCurrentLayer(MapLayersHandler s, LayerEventArg e)
@@ -97,50 +104,50 @@ namespace GPXManager.views
             CurrentLayer = s.CurrentMapLayer;
         }
 
+        
+
         private void OnMapShapeSelected(MapInterActionHandler s, LayerEventArg e)
         {
-            bool isFound = false;
-            if (CurrentLayer.LayerType == "ShapefileClass" && LayerSelector!=null)
+            Title = "not found";
+            if (CurrentLayer.LayerType == "ShapefileClass" && LayerSelector != null)
             {
                 SelectedShapeIndexes = e.SelectedIndexes.ToList();
-
+                var sf = (Shapefile)CurrentLayer.LayerObject;
+                int fileNameField = sf.FieldIndexByName["Filename"];
+                int gpsField = sf.FieldIndexByName["GPS"];
 
                 switch (LayerSelector.GetType().Name)
                 {
                     case "DataGrid":
                         var dataGrid = (System.Windows.Controls.DataGrid)LayerSelector;
+                        string fileName = sf.CellValue[fileNameField, SelectedShapeIndexes[0]];
+                        string gps = sf.CellValue[gpsField, SelectedShapeIndexes[0]];
+                        string itemGPS="";
+                        string itemFilename = ""; 
                         foreach (var item in dataGrid.Items)
                         {
-                            GPXFile gpxFile = (GPXFile)item;
-                            if (SelectedShapeIndexes.Count == 1 && gpxFile.ShapeIndexes.Contains(SelectedShapeIndexes[0]))
+                            switch (dataGrid.Name)
                             {
-                                switch (CurrentLayer.LayerKey)
-                                {
-                                    case "gpxfile_track":
-                                        if(gpxFile.GPXFileType==GPXFileType.Track)
-                                        {
-                                            isFound = true;
-                                        }
-                                        break;
-                                    case "gpxfile_waypoint":
-                                        if(gpxFile.GPXFileType==GPXFileType.Waypoint)
-                                        {
-                                            isFound = true;
-                                        }
-                                        break;
-                                }
-
-                                if (isFound)
-                                {
-                                    dataGrid.SelectedItem = item;
-                                    dataGrid.ScrollIntoView(item);
+                                case "dataGridTrips":
+                                    Trip trip = (Trip)item;
+                                    itemGPS = trip.GPS.DeviceName;
+                                    itemFilename = trip.Track.FileName;
                                     break;
-                                }
+                                case "dataGridGPXFiles":
+                                    GPXFile gpxFile = (GPXFile)item;
+                                    itemGPS = gpxFile.GPS.DeviceName;
+                                    itemFilename = gpxFile.FileName;
+                                    break;
+                            }
+                            if (itemGPS==gps && itemFilename==fileName)
+                            {
+                                dataGrid.SelectedItem = item;
+                                dataGrid.ScrollIntoView(item);
+                                break;
                             }
                         }
                         break;
                 }
-                
             }
         }
 
@@ -156,20 +163,20 @@ namespace GPXManager.views
             if (stpw.ShowDialog() == true)
             {
                 MapControl.TileProvider = (tkTileProvider)Enum.Parse(typeof(tkTileProvider), stpw.TileProviderID.ToString());
-            } 
+            }
         }
         private void OnMenuClick(object sender, RoutedEventArgs e)
         {
-            switch(((WindowMenuItem)sender).Name)
+            switch (((WindowMenuItem)sender).Name)
             {
                 case "menuMapTilesSelectProvider":
                     SelectTileProvider();
                     break;
                 case "menuClose":
-                    Close(); 
-                    break; 
+                    Close();
+                    break;
                 case "menuSaveMapState":
-                    if(MapWindowManager.SaveMapState()==false)
+                    if (MapWindowManager.SaveMapState() == false)
                     {
                         System.Windows.MessageBox.Show(MapWindowManager.LastError, "GPXManager", MessageBoxButton.OK, MessageBoxImage.Error);
                     }
@@ -178,7 +185,7 @@ namespace GPXManager.views
                     var aoiw = new AOIWindow();
                     aoiw.Owner = this;
                     aoiw.AddNewAOI();
-                    aoiw.Show(); 
+                    aoiw.Show();
                     AOIManager.AddNew();
                     break;
                 case "menuAOIList":
@@ -195,17 +202,22 @@ namespace GPXManager.views
         private void OnMenuChecked(object sender, RoutedEventArgs e)
         {
             var menuItem = (WindowMenuItem)sender;
-            switch(menuItem.Name)
+            switch (menuItem.Name)
             {
                 case "menuMapCoastlineVisible":
                     var coast = MapLayersHandler.get_MapLayer("Coastline");
+                    if(coast==null)
+                    {
+                        MapWindowManager.LoadCoastline(MapWindowManager.CoastlineFile);
+                        coast = MapLayersHandler.get_MapLayer("Coastline");
+                    }
                     MapLayersHandler.EditLayer(coast.Handle, coast.Name, menuItem.IsChecked);
                     break;
                 case "menuMapTilesVisible":
-                    if(menuItem.IsChecked)
+                    if (menuItem.IsChecked)
                     {
                         menuMapTilesSelectProvider.IsEnabled = true;
-                        if(MapControl.TileProvider==tkTileProvider.ProviderNone)
+                        if (MapControl.TileProvider == tkTileProvider.ProviderNone)
                         {
                             SelectTileProvider();
                         }
@@ -228,7 +240,7 @@ namespace GPXManager.views
         {
             tkCursorMode cursorMode = tkCursorMode.cmNone;
             tkCursor cursor = tkCursor.crsrArrow;
-            switch(((System.Windows.Controls.Button)sender).Name)
+            switch (((System.Windows.Controls.Button)sender).Name)
             {
                 case "buttonDataScreen":
                     Visibility = Visibility.Hidden;
@@ -236,10 +248,11 @@ namespace GPXManager.views
                     {
                         MapWindowManager.MapLayersWindow.Visibility = Visibility.Hidden;
                     }
-                    if(MapWindowManager.ShapeFileAttributesWindow != null)
+                    if (MapWindowManager.ShapeFileAttributesWindow != null)
                     {
                         MapWindowManager.ShapeFileAttributesWindow.Visibility = Visibility.Hidden;
                     }
+
                     ParentWindow.Focus();
                     break;
                 case "buttonExit":
@@ -270,18 +283,34 @@ namespace GPXManager.views
                     MapLayersHandler.ClearAllSelections();
                     break;
                 case "buttonAttributes":
-                    if (MapLayersHandler.CountLayersWithSelection==1)
+                    ShapeFileAttributesWindow sfw = ShapeFileAttributesWindow.GetInstance(MapWindowManager.MapInterActionHandler);
+                    if (sfw.Visibility == Visibility.Visible)
                     {
-                        var saw = new ShapeFileAttributesWindow();
-                        saw.ShapeFile = MapWindowManager.MapLayersHandler.CurrentMapLayer.LayerObject as Shapefile;
-                        saw.ShowShapeFileAttribute();
-                        saw.Owner = this;
-                        saw.Show();
+                        sfw.BringIntoView();
                     }
                     else
                     {
-                        System.Windows.MessageBox.Show("Map must have only one layer with selected features","GPX Manager",MessageBoxButton.OK, MessageBoxImage.Information);
+                        sfw.Owner = this;
+                        sfw.ShapeFile = MapLayersHandler.CurrentMapLayer.LayerObject as Shapefile;
+                        sfw.ShowShapeFileAttribute();
+                        sfw.Show();
                     }
+                    MapWindowManager.ShapeFileAttributesWindow = sfw;
+                    //if (MapLayersHandler.CountLayersWithSelection==1)
+                    //{
+                    //if (MapWindowManager.MapLayersHandler.CurrentMapLayer != null && MapWindowManager.MapLayersHandler.CurrentMapLayer.LayerObject is Shapefile)
+                    //{
+                    //    var saw = new ShapeFileAttributesWindow(MapInterActionHandler);
+                    //    saw.ShapeFile = MapWindowManager.MapLayersHandler.CurrentMapLayer.LayerObject as Shapefile;
+                    //    saw.ShowShapeFileAttribute();
+                    //    saw.Owner = this;
+                    //    saw.Show();
+                    //}
+                    //}
+                    //else
+                    //{
+                    //    System.Windows.MessageBox.Show("Map must have only one layer with selected features","GPX Manager",MessageBoxButton.OK, MessageBoxImage.Information);
+                    //}
                     break;
                 case "buttonGears":
                     ToBeImplemented("mapping options");
@@ -300,8 +329,8 @@ namespace GPXManager.views
                     break;
                 case "buttonLayers":
                     var mlw = MapLayersWindow.GetInstance();
-                    
-                    if (mlw.Visibility==Visibility.Visible)
+
+                    if (mlw.Visibility == Visibility.Visible)
                     {
                         mlw.BringIntoView();
                         mlw.Focus();
@@ -313,7 +342,7 @@ namespace GPXManager.views
                         mlw.MapLayersHandler = MapWindowManager.MapLayersHandler;
                         mlw.Show();
                     }
-                    
+
                     break;
                 case "buttonAddLayer":
                     ToBeImplemented("add a layer");

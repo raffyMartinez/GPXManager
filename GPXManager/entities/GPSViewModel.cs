@@ -13,6 +13,7 @@ namespace GPXManager.entities
 {
     public class GPSViewModel
     {
+        private bool _gpsRemovedByEject;
         public ObservableCollection<GPS> GPSCollection { get; set; }
         private GPSRepository GPSes { get; set; }
 
@@ -78,6 +79,10 @@ namespace GPXManager.entities
             return false;
         }
 
+        public bool Exists(GPS gps)
+        {
+            return GPSCollection.Where(t => t.DeviceID == gps.DeviceID).FirstOrDefault() != null;
+        }
         public List<string> GetModels(string brand)
         {
             var list = GPSCollection
@@ -85,6 +90,23 @@ namespace GPXManager.entities
 
             return (from gps in list select gps.Model).Distinct().ToList();
 
+        }
+
+        public bool RemoveByEject(GPS gps)
+        {
+            int oldCount = GPSCollection.Count;
+            int index = 0;
+            while (index < GPSCollection.Count)
+            {
+                if (GPSCollection[index].DeviceID == gps.DeviceID)
+                {
+                    _gpsRemovedByEject = true;
+                    GPSCollection.RemoveAt(index);
+                    break;
+                }
+                index++;
+            }
+            return oldCount > GPSCollection.Count;
         }
         public List<string> GetBrands()
         {
@@ -133,8 +155,15 @@ namespace GPXManager.entities
                     break;
                 case NotifyCollectionChangedAction.Remove:
                     {
-                        List<GPS> tempListOfRemovedItems = e.OldItems.OfType<GPS>().ToList();
-                        GPSes.Delete(tempListOfRemovedItems[0].Code);
+                        if (_gpsRemovedByEject)
+                        {
+                            _gpsRemovedByEject = false;
+                        }
+                        else
+                        {
+                            List<GPS> tempListOfRemovedItems = e.OldItems.OfType<GPS>().ToList();
+                            GPSes.Delete(tempListOfRemovedItems[0].Code);
+                        }
                     }
                     break;
                 case NotifyCollectionChangedAction.Replace:
@@ -249,5 +278,6 @@ namespace GPXManager.entities
 
             return evr;
         }
+
     }
 }

@@ -11,6 +11,7 @@ using System.Xml;
 using GPXManager.entities;
 using System.Linq;
 
+
 namespace GPXManager.entities.mapping
 
 {
@@ -35,6 +36,8 @@ namespace GPXManager.entities.mapping
 
         private bool _tilesVisible = false;
 
+
+
         public bool TilesVisible
         {
             get { return _tilesVisible; }
@@ -52,6 +55,9 @@ namespace GPXManager.entities.mapping
         public event EventHandler MapRedrawNeeded;
 
         public event EventHandler LayerRefreshNeeded;
+
+        public delegate void LayerPositionChangedHandler(MapLayersHandler s);                 //an event that is raised when a layer positions changed
+        public event LayerReadHandler LayerPositionChanged;
 
         public event EventHandler LayerClassificationFinished;
 
@@ -622,6 +628,15 @@ namespace GPXManager.entities.mapping
             }
         }
 
+        public void LayersSequence(List<MapLayerSequence>layersSequnce)
+        {
+            foreach(MapLayerSequence mls in layersSequnce)
+            {
+                MapControl.MoveLayer(MapControl.get_LayerPosition(mls.MapLayer.Handle), mls.Sequence);
+                MapLayerDictionary.Values.Where(t => t.Handle == mls.MapLayer.Handle).FirstOrDefault().LayerPosition = mls.Sequence;
+            }
+            MapControl.Redraw();
+        }
         private void RemoveInMemoryLayers()
         {
             for (int n = 0; n < _axmap.NumLayers; n++)

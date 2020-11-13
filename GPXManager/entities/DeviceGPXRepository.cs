@@ -8,25 +8,25 @@ using System.Data.OleDb;
 
 namespace GPXManager.entities
 {
-    public class DeviceWaypointGPXRepository
+    public class DeviceGPXRepository
     {
-        public List<DeviceWaypointGPX> DeviceWaypointGPXes { get; set; }
+        public List<DeviceGPX> DeviceGPXes { get; set; }
 
-        public DeviceWaypointGPXRepository()
+        public DeviceGPXRepository()
         {
-            DeviceWaypointGPXes = getDeviceWaypointGPXes();
+            DeviceGPXes = getDeviceGPXes();
         }
 
-        public List<DeviceWaypointGPX> getDeviceWaypointGPXes()
+        public List<DeviceGPX> getDeviceGPXes()
         {
-            var thisList = new List<DeviceWaypointGPX>();
+            var thisList = new List<DeviceGPX>();
             var dt = new DataTable();
             using (var conection = new OleDbConnection(Global.ConnectionString))
             {
                 try
                 {
                     conection.Open();
-                    string query = $"Select * from device_waypoints_gpx";
+                    string query = $"Select * from device_gpx";
 
 
                     var adapter = new OleDbDataAdapter(query, conection);
@@ -36,12 +36,15 @@ namespace GPXManager.entities
                         thisList.Clear();
                         foreach (DataRow dr in dt.Rows)
                         {
-                            DeviceWaypointGPX gpx = new DeviceWaypointGPX();
+                            DeviceGPX gpx = new DeviceGPX();
                             gpx.Filename = dr["FileName"].ToString();
                             gpx.GPS = Entities.GPSViewModel.GetGPSEx(dr["DeviceID"].ToString());
                             gpx.RowID = int.Parse(dr["RowID"].ToString());
-                            gpx.GPX = dr["WaypointGPX"].ToString();
+                            gpx.GPX = dr["gpx_xml"].ToString();
                             gpx.MD5 = dr["md5"].ToString();
+                            gpx.GPXType = dr["gpx_type"].ToString(); ;
+                            gpx.TimeRangeStart = (DateTime)dr["time_range_start"];
+                            gpx.TimeRangeEnd = (DateTime)dr["time_range_end"];
                             thisList.Add(gpx);
                         }
                     }
@@ -55,13 +58,14 @@ namespace GPXManager.entities
              return thisList;
         }
 
-        public bool Add(DeviceWaypointGPX gpx)
+        public bool Add(DeviceGPX gpx)
         {
             bool success = false;
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
+                
                 conn.Open();
-                var sql = $@"Insert into device_waypoints_gpx (DeviceID,FileName,WaypointGPX,RowID,md5,DateAdded,DateModified)
+                var sql = $@"Insert into device_gpx (DeviceID,FileName,gpx_xml,RowID,md5,DateAdded,DateModified,gpx_type,time_range_start,time_range_end)
                            Values (
                                     '{gpx.GPS.DeviceID}',
                                     '{gpx.Filename}', 
@@ -69,7 +73,10 @@ namespace GPXManager.entities
                                      {gpx.RowID},
                                     '{gpx.MD5}',
                                     '{DateTime.Now.ToString("dd-MMM-yyyy HH:mm:ss")}',
-                                    '{DateTime.Now.ToString("dd-MMM-yyyy HH:mm:ss")}'
+                                    '{DateTime.Now.ToString("dd-MMM-yyyy HH:mm:ss")}',
+                                    '{gpx.GPXType}',
+                                    '{gpx.TimeRangeStart}',
+                                    '{gpx.TimeRangeEnd}'
                                   )";
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
@@ -85,7 +92,7 @@ namespace GPXManager.entities
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $"Delete * from device_waypoints_gpx";
+                var sql = $"Delete * from device_gpx";
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
                     try
@@ -106,18 +113,21 @@ namespace GPXManager.entities
             }
             return success;
         }
-        public bool Update(DeviceWaypointGPX gpx)
+        public bool Update(DeviceGPX gpx)
         {
             bool success = false;
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"Update device_waypoints_gpx set
+                var sql = $@"Update device_gpx set
                                 DeviceID= '{gpx.GPS.DeviceID}',
-                                WaypointGPX = '{gpx.GPX}',
+                                gpx_xml = '{gpx.GPX}',
                                 FileName = '{gpx.Filename}',
                                 md5='{gpx.MD5}',
-                                DateModified='{DateTime.Now.ToString("dd-MMM-yyyy HH:mm:ss")}'
+                                DateModified='{DateTime.Now.ToString("dd-MMM-yyyy HH:mm:ss")}',
+                                gpx_type = '{gpx.GPXType}',
+                                time_range_start = '{gpx.TimeRangeStart}',
+                                time_range_end = '{gpx.TimeRangeEnd}',
                             WHERE RowID = {gpx.RowID}";
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
@@ -133,7 +143,7 @@ namespace GPXManager.entities
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $"Delete * from device_waypoints_gpx where RowID={rowID}";
+                var sql = $"Delete * from device_gpx where RowID={rowID}";
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
                     try
@@ -160,7 +170,7 @@ namespace GPXManager.entities
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                const string sql = "SELECT Max(RowID) AS max_id FROM device_waypoints_gpx";
+                const string sql = "SELECT Max(RowID) AS max_id FROM device_gpx";
                 using (OleDbCommand getMax = new OleDbCommand(sql, conn))
                 {
                     max_rec_no = (int)getMax.ExecuteScalar();

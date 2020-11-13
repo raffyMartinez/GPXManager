@@ -12,6 +12,12 @@ namespace GPXManager.entities.mapping
 /// </summary>
     public class MapLayer : IDisposable
     {
+        public override string ToString()
+        {
+            return $"{Name} ({LayerType})";
+        }
+
+
         public string LayerKey { get; set; }
         public string Name { get; set; }
         public bool Visible { get; set; }

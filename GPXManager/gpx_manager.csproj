@@ -29,6 +29,8 @@
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -60,11 +62,15 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>bin\Debug\Gavaghan.Geodesy.dll</HintPath>
     </Reference>
+    <Reference Include="GongSolutions.WPF.DragDrop, Version=2.0.0.0, Culture=neutral, PublicKeyToken=91f1945125b7a587, processorArchitecture=MSIL">
+      <HintPath>..\packages\gong-wpf-dragdrop.2.3.2\lib\net47\GongSolutions.WPF.DragDrop.dll</HintPath>
+    </Reference>
     <Reference Include="Ookii.Dialogs.Wpf, Version=1.0.0.0, Culture=neutral, PublicKeyToken=66aa232afad40158, processorArchitecture=MSIL">
       <HintPath>..\packages\Ookii.Dialogs.Wpf.1.1.0\lib\net45\Ookii.Dialogs.Wpf.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
     <Reference Include="System.Design" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Management" />
@@ -107,9 +113,9 @@
     <Compile Include="entities\mapping\AOI.cs" />
     <Compile Include="entities\DateTimePickerEditor.cs" />
     <Compile Include="entities\DateTimePickerWithTime.cs" />
-    <Compile Include="entities\DeviceWaypointGPX.cs" />
-    <Compile Include="entities\DeviceWaypointGPXRepository.cs" />
-    <Compile Include="entities\DeviceWaypointGPXViewModel.cs" />
+    <Compile Include="entities\DeviceGPX.cs" />
+    <Compile Include="entities\DeviceGPXRepository.cs" />
+    <Compile Include="entities\DeviceGPXViewModel.cs" />
     <Compile Include="entities\Gear.cs" />
     <Compile Include="entities\GearItemsSource.cs" />
     <Compile Include="entities\GearRepository.cs" />
@@ -129,12 +135,16 @@
     <Compile Include="entities\mapping\LineWidthFix.cs" />
     <Compile Include="entities\mapping\MapInterActionHandler.cs" />
     <Compile Include="entities\mapping\MapLayer.cs" />
+    <Compile Include="entities\mapping\MapLayerSequence.cs" />
     <Compile Include="entities\mapping\MapLayersHandler.cs" />
+    <Compile Include="entities\mapping\MapLayersViewModel.cs" />
     <Compile Include="entities\mapping\MapWindowManager.cs" />
     <Compile Include="entities\mapping\PointLayerSymbologyHandler.cs" />
+    <Compile Include="entities\mapping\ShapefileAttributeTableManager.cs" />
     <Compile Include="entities\mapping\ShapefileFactory.cs" />
     <Compile Include="entities\mapping\ShapefileLabelHandler.cs" />
     <Compile Include="entities\mapping\ShapefileLayerHelper.cs" />
+    <Compile Include="entities\mapping\TripMappingManager.cs" />
     <Compile Include="entities\mapping\Views\AOIWindow.xaml.cs">
       <DependentUpon>AOIWindow.xaml</DependentUpon>
     </Compile>
@@ -166,6 +176,9 @@
     <Compile Include="entities\WaypointItemsSource.cs" />
     <Compile Include="entities\WaypointTypeItemsSource.cs" />
     <Compile Include="entities\WaypointViewModel.cs" />
+    <Compile Include="views\AboutWindow.xaml.cs">
+      <DependentUpon>AboutWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="views\EditBrandModelWindow.xaml.cs">
       <DependentUpon>EditBrandModelWindow.xaml</DependentUpon>
     </Compile>
@@ -237,6 +250,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="views\AboutWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="views\EditBrandModelWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -459,6 +476,24 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="entities\mapping\Views\layer remove.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="map itenerary.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="views\map screen grey.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="calendar3.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="eject usb.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="entities\mapping\Views\move to right.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="entities\mapping\Views\move to left.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

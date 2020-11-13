@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GPXManager.entities.mapping.Views"
+        xmlns:dd="urn:gong-wpf-dragdrop"
         mc:Ignorable="d"
         Loaded="OnWindowLoaded"
         Title="Layers" Height="450" Width="366.822" ResizeMode="CanResizeWithGrip" WindowStyle="ToolWindow">
@@ -19,7 +20,18 @@
                 <MenuItem Header="Close"/>
             </MenuItem>
             <MenuItem Header="Edit">
-                <MenuItem Header="Edit"/>
+                <MenuItem Header="Snap to map">
+                    <MenuItem Header="Left" IsCheckable="True" >
+                        <MenuItem.Icon>
+                            <Image Source="move to right.png"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="Right" IsCheckable="True">
+                        <MenuItem.Icon>
+                            <Image Source="move to left.png"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                </MenuItem>
             </MenuItem>
         </Menu>
         <ToolBarTray Grid.Row="1" Height="34">
@@ -30,10 +42,17 @@
                 <Button x:Name="buttonRemove" Click="OnToolbarButtonClick" ToolTip="Layers">
                     <Image Source="layer remove.png" />
                 </Button>
+                <Button x:Name="buttonAttributes" Click="OnToolbarButtonClick" ToolTip="Layers">
+                    <Image Source="/GPXManager;component/views/table1.png" />
+                </Button>
             </ToolBar>
         </ToolBarTray>
         <DataGrid x:Name="dataGridLayers" Grid.Row="2"  CanUserAddRows="False" ItemsSource="{Binding}" 
-                  HeadersVisibility="None" GridLinesVisibility="None" PreviewMouseDown="OnDataGridPreviewMouseDown"
-                  Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" />
+                  HeadersVisibility="None" GridLinesVisibility="None" 
+                  Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" 
+                  dd:DragDrop.IsDragSource="True" 
+                  dd:DragDrop.IsDropTarget="True"
+                  dd:DragDrop.DropHandler="{Binding}"
+                  />
     </Grid>
 </Window>

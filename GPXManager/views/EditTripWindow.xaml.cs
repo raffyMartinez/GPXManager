@@ -13,7 +13,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using WpfApp1;
+//using WpfApp1;
 using GPXManager.entities;
 using Xceed.Wpf.Toolkit.PropertyGrid;
 
@@ -142,7 +142,7 @@ namespace GPXManager.views
                     _trip.Track.FileName = trackFileName;
                     _trip.Track.Waypoints = _waypoints;
                     _trip.Track.Name = $"{GPS.DeviceName} {timeStamp.ToString("MMM-dd-yyyy HH:mm")}";
-                    _trip.Track.SerializeToString(GPS, timeStamp);
+                    _trip.Track.SerializeToString(GPS, timeStamp, trackFileName);
                     _trip.Track.ResetStatistics();
                     PropertyGrid.Update();
                     _dateTimeDepartureArrivalChanged = false;
@@ -184,7 +184,8 @@ namespace GPXManager.views
                             OtherGear = _trip.OtherGear,
                             DeviceID = _trip.DeviceID,
                             Track = _trip.Track,
-                            Notes = _trip.Notes
+                            Notes = _trip.Notes,
+                            GPXFileName = _trip.Track.FileName
                         };
 
                         var result = Entities.TripViewModel.ValidateTrip(trip, IsNew);

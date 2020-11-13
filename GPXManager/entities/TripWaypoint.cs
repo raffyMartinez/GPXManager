@@ -7,7 +7,6 @@ using System.ComponentModel;
 using Xceed.Wpf.Toolkit.PropertyGrid.Attributes;
 using Xceed.Wpf.Toolkit;
 using NSAP_ODK.Entities;
-using System.ComponentModel;
 namespace GPXManager.entities
 {
     public class TripWaypointLite
@@ -41,8 +40,7 @@ namespace GPXManager.entities
         [ItemsSource(typeof(WaypointTypeItemsSource))]
         public string WaypointType { get; set; }
 
-        //[Editor(typeof(DateTimePickerWithTime), typeof(DateTimePicker))]
-        public string TimeStampAdjusted { get; internal set; }
+        public DateTime TimeStampAdjusted { get; internal set; }
 
 
         public DateTime? TimeStamp { 
@@ -50,7 +48,7 @@ namespace GPXManager.entities
             set 
             {
                 _timeStamp = value;
-                TimeStampAdjusted = ((DateTime)_timeStamp).ToString("dd-MMM-yyyy HH:mm:ss");
+                TimeStampAdjusted = ((DateTime)_timeStamp).AddHours(Global.Settings.HoursOffsetGMT);
             }
         }
         public int SetNumber { get; set; }

@@ -19,6 +19,9 @@ namespace GPXManager.entities
         /// </summary>
         public class TrackStatistics
         {
+
+            public Waypoint WayPointStart { get; set; }
+            public Waypoint WayPointEnd { get; set; }
             /// <summary>
             /// Amount of time where a speed threshold between waypoints is exceeded.
             /// </summary>
@@ -65,6 +68,14 @@ namespace GPXManager.entities
 
         public GPS GPS { get; set; }
         public string FileName { get; set; }
+
+        public string FullFileName
+        {
+            get
+            {
+                return $@"{GPS.Device.Disks[0].Caption}\{GPS.Folder}\{FileName}";
+            }
+        }
 
         /// <summary>
         /// All waypoints of the track.
@@ -162,6 +173,8 @@ namespace GPXManager.entities
                     }
                     trackStatistics.Length += distance;
                 }
+                trackStatistics.WayPointStart = Waypoints[0];
+                trackStatistics.WayPointEnd = Waypoints[Waypoints.Count-1];
                 trackStatistics.Length /= 1000; // convert to km
                 trackStatistics.Duration = Waypoints[Waypoints.Count - 1].Time - Waypoints[0].Time;
                 trackStatistics.AverageSpeed = trackStatistics.Length / trackStatistics.Duration.TotalHours;
@@ -197,13 +210,14 @@ namespace GPXManager.entities
         }
 
         public  string XMLString { get; internal set; }
-        public  string SerializeToString(GPS gps, DateTime timeStamp)
+        public  string SerializeToString(GPS gps, DateTime timeStamp,string gpxFileName)
         {
             XmlDocument doc = new XmlDocument();
 
             XmlElement root = doc.CreateElement("gpx");
             root.SetAttribute("xmlns", "http://www.topografix.com/GPX/1/1");
             root.SetAttribute("creator", "GPXManager");
+            root.SetAttribute("gpx_file_source", gpxFileName);
             root.SetAttribute("gps", $"{gps.Code} {gps.DeviceName}");
             root.SetAttribute("timestamp", $"{timeStamp.ToString("MMM-dd-yyyy HH:mm")}");
 

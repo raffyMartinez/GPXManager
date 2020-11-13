@@ -12,6 +12,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using GPXManager.views;
 using MapWinGIS;
 
 namespace GPXManager.entities.mapping.Views
@@ -21,12 +22,49 @@ namespace GPXManager.entities.mapping.Views
     /// </summary>
     public partial class ShapeFileAttributesWindow : Window
     {
+        private MapInterActionHandler _mapInterActionHandler;
         private static ShapeFileAttributesWindow _instance;
-        public ShapeFileAttributesWindow()
+        public ShapeFileAttributesWindow(MapInterActionHandler mapInterActionHandler)
         {
             InitializeComponent();
             Closing += OnWindowClosing;
+            Loaded += ShapeFileAttributesWindow_Loaded;
+            _mapInterActionHandler = mapInterActionHandler;
+            _mapInterActionHandler.ShapesSelected += _mapInterActionHandler_ShapesSelected;
+            _mapInterActionHandler.MapLayersHandler.CurrentLayer += MapLayersHandler_CurrentLayer;
         }
+
+        private void ShapeFileAttributesWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            MapWindowManager.ShapeFileAttributesWindow = this;
+        }
+
+        private void MapLayersHandler_CurrentLayer(MapLayersHandler s, LayerEventArg e)
+        {
+            ShapeFile = s.CurrentMapLayer.LayerObject as Shapefile;
+            ShowShapeFileAttribute();
+        }
+
+        private void _mapInterActionHandler_ShapesSelected(MapInterActionHandler s, LayerEventArg e)
+        {
+            foreach(DataRowView item in dataGridAttributes.Items )
+            {
+                if (item.Row.Field<int>("MWShapeID") == e.SelectedIndexes[0])
+                {
+                    dataGridAttributes.SelectedItem = item;
+                }
+            }
+        }
+
+        
+        private void CleanUp()
+        {
+            _instance = null;
+            _mapInterActionHandler.ShapesSelected -= _mapInterActionHandler_ShapesSelected;
+            _mapInterActionHandler.MapLayersHandler.CurrentLayer -= MapLayersHandler_CurrentLayer;
+            _mapInterActionHandler = null;
+        }
+
         protected override void OnSourceInitialized(EventArgs e)
         {
             base.OnSourceInitialized(e);
@@ -34,13 +72,16 @@ namespace GPXManager.entities.mapping.Views
         }
         private void OnWindowClosing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            _instance = null;
+            CleanUp();
             this.SavePlacement();
+            MapWindowManager.ShapeFileAttributesWindow = null;
+            MapWindowManager.MapWindowForm.Focus();
+            _instance = null;
         }
 
-        public static ShapeFileAttributesWindow GetInstance()
+        public static ShapeFileAttributesWindow GetInstance(MapInterActionHandler mapInterActionHandler)
         {
-            if (_instance == null) _instance = new ShapeFileAttributesWindow();
+            if (_instance == null) _instance = new ShapeFileAttributesWindow(mapInterActionHandler);
             return _instance;
         }
 
@@ -53,69 +94,26 @@ namespace GPXManager.entities.mapping.Views
 
         public void ShowShapeFileAttribute()
         {
-            DataTable dt = new DataTable();
+            dataGridAttributes.DataContext = ShapefileAttributeTableManager.SetupAttributeTable(ShapeFile);
+            labelTitle.Content = ShapefileAttributeTableManager.DataCaption;
 
-            for(int y=0;y< ShapeFile.NumFields;y++)
-            {
-                Field fld = ShapeFile.Field[y];
-                string fieldCaption = fld.Name;
-                Type t = typeof(int);
-                switch (fld.Type)
-                {
-                    case FieldType.DOUBLE_FIELD:
-                        t = typeof(double);
-                        break;
-                    case FieldType.STRING_FIELD:
-                        t = typeof(string);
-                        break;
-                    case FieldType.INTEGER_FIELD:
-                        t = typeof(int);
-                        break;
-                    case FieldType.DATE_FIELD:
-                        t = typeof(DateTime);
-                        break;
-                    case FieldType.BOOLEAN_FIELD:
-                        t = typeof(bool);
-                        break;
-                }
-                dt.Columns.Add(new DataColumn { Caption = fieldCaption, DataType = t,ColumnName = fieldCaption });
-            }
-
-            DataRow row;
-            if (ShapeFile.NumSelected == 0)
-            {
-                for (int x = 0; x < ShapeFile.NumShapes; x++)
-                {
-                    row = dt.NewRow();
-                    for (int z = 0; z < ShapeFile.NumFields; z++)
-                    {
-                        row[z] = ShapeFile.CellValue[z, x];
-                    }
-                    dt.Rows.Add(row);
-                }
-            }
-            else
-            {
-                for (int x=0;x<ShapeFile.NumShapes;x++)
-                {
-                    if(ShapeFile.ShapeSelected[x])
-                    {
-                        row = dt.NewRow();
-                        for (int z=0; z<ShapeFile.NumFields;z++)
-                        {
-                            row[z] = ShapeFile.CellValue[z, x];
-                        }
-                        dt.Rows.Add(row);
-                    }
-                }
-            }
-
-            dataGridAttributes.DataContext = dt;
         }
 
         private void OnDataGridSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-
+            if (e.AddedItems.Count > 0)
+            {
+                DataColumn col = ((DataRowView)e.AddedItems[0]).Row.Table.Columns["MWShapeID"];
+                if (col != null)
+                {
+                    List<int> selectedIDs = new List<int>();
+                    foreach (DataRowView row in ((DataGrid)sender).SelectedItems)
+                    {
+                        selectedIDs.Add(row.Row.Field<int>(col));
+                    }
+                    MapWindowManager.SelectedAttributeRows = selectedIDs;
+                }
+            }
         }
     }
 }

@@ -38,6 +38,7 @@ namespace GPXManager.entities
     }
     public class GPS
     {
+        private DetectedDevice _device;
         public GPS()
         {
         
@@ -64,7 +65,16 @@ namespace GPXManager.entities
 
         public string Folder { get; set; }
 
-        public DetectedDevice Device{ get; set; }
+        public DetectedDevice Device{
+            get
+            {
+                if (_device == null)
+                {
+                    _device = Entities.DetectedDeviceViewModel.GetDevice(DeviceID);
+                }
+                return _device;
+            } 
+            set { _device= value; } }
 
         public override string ToString()
         {
