@@ -215,6 +215,7 @@ namespace GPXManager.entities
             XmlNodeList parentNode = doc.GetElementsByTagName("trkpt");
 
             Waypoint wpt = null;
+            int x = 1;
             foreach (XmlNode pt in parentNode)
             {
                 if (stayInGMT)
@@ -224,9 +225,8 @@ namespace GPXManager.entities
                         Latitude = double.Parse(pt.Attributes["lat"].Value),
                         Longitude = double.Parse(pt.Attributes["lon"].Value),
 
-                        //BEWARE: pt.inner text is time in GMT and when parsed
-                        //it converts it to local time which could surprise you
-                        Time = (DateTime)DateTimeOffset.Parse(pt.InnerText).DateTime
+                        Time = (DateTime)DateTimeOffset.Parse(pt.InnerText).DateTime,
+                        Name = x.ToString()
                     };
                 }
                 else
@@ -238,10 +238,12 @@ namespace GPXManager.entities
 
                         //BEWARE: pt.inner text is time in GMT and when parsed
                         //it converts it to local time which could surprise you
-                        Time = DateTime.Parse(pt.InnerText)
+                        Time = DateTime.Parse(pt.InnerText),
+                        Name = x.ToString()
                     };
                 }
                 Waypoints.Add(wpt);
+                x++;
             }
 
             var wpts = Waypoints.OrderBy(t => t.Time).ToList();
