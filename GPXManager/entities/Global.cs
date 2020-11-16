@@ -11,6 +11,8 @@ namespace GPXManager.entities
 {
     public static class Global
     {
+        public static string MapOCXPath = $@"{AppDomain.CurrentDomain.BaseDirectory}AxInterop.MapWinGIS.dll";
+
         public const string UserSettingsFilename = "settings.xml";
 
         public static string _DefaultSettingspath =
@@ -23,6 +25,10 @@ namespace GPXManager.entities
             UserSettingsFilename;
 
 
+        public static bool MapOCXInstalled
+        {
+            get { return File.Exists(MapOCXPath); }
+       }
         public static string MDBPath { get; internal set; }
 
         public static bool AppProceed { get; private set; }

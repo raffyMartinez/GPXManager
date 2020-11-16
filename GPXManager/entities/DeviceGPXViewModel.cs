@@ -26,12 +26,36 @@ namespace GPXManager.entities
             ConvertDeviceGPXInArchiveToGPXFile();
         }
 
-        private void ConvertDeviceGPXInArchiveToGPXFile()
+        public void RefreshArchivedGPXCollection(GPS gps)
         {
-            foreach(var item in DeviceGPXCollection)
+            ConvertDeviceGPXInArchiveToGPXFile(gps); ;
+        }
+
+        private void ConvertDeviceGPXInArchiveToGPXFile(GPS gps = null)
+        {
+            if (gps == null)
             {
-                var gpxFile = Entities.GPXFileViewModel.ConvertToGPXFile(item);
-                AddToDictionary(gpxFile.GPS, gpxFile);
+                foreach (var item in DeviceGPXCollection)
+                {
+                    var gpxFile = Entities.GPXFileViewModel.ConvertToGPXFile(item);
+                    AddToDictionary(gpxFile.GPS, gpxFile);
+                }
+            }
+            else
+            {
+                List<GPXFile> gpxFiles = new List<GPXFile>();
+                if (ArchivedGPXFiles.Keys.Contains(gps)&& ArchivedGPXFiles[gps].Count > 0)
+                {
+                   gpxFiles = ArchivedGPXFiles[gps];
+                }
+                foreach (var item in DeviceGPXCollection.Where(t=>t.GPS.DeviceID==gps.DeviceID))
+                {
+                    var gpxFile = Entities.GPXFileViewModel.ConvertToGPXFile(item);
+                    if (!gpxFiles.Contains(gpxFile))
+                    {
+                        AddToDictionary(gpxFile.GPS, gpxFile);
+                    }
+                }
             }
         }
 

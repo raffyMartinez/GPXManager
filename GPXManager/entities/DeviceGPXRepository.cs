@@ -127,7 +127,7 @@ namespace GPXManager.entities
                                 DateModified='{DateTime.Now.ToString("dd-MMM-yyyy HH:mm:ss")}',
                                 gpx_type = '{gpx.GPXType}',
                                 time_range_start = '{gpx.TimeRangeStart}',
-                                time_range_end = '{gpx.TimeRangeEnd}',
+                                time_range_end = '{gpx.TimeRangeEnd}'
                             WHERE RowID = {gpx.RowID}";
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {

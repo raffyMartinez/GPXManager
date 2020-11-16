@@ -85,7 +85,7 @@ namespace GPXManager.views
             switch(ShowMode)
             {
                 case ShowMode.ShowModeBrand:
-                    labelTitle.Content = "Manage GPS brands";
+                    labelTitle.Content = "GPS brands";
                     Title = "GPS Brands";
                     if (Entities.GPSViewModel.GPSBrands!=null)
                     {
@@ -97,7 +97,7 @@ namespace GPXManager.views
                     
                     break;
                 case ShowMode.ShowModeModel:
-                    labelTitle.Content = $"Manage GPS models for {Brand}";
+                    labelTitle.Content = $"GPS models for {Brand}";
                     Title = "GPS Models";
                     if (Entities.GPSViewModel.GPSModels != null)
                     {
@@ -108,6 +108,7 @@ namespace GPXManager.views
                     }
                     break;
             }
+            textBlock.Focus();
         }
     }
 }

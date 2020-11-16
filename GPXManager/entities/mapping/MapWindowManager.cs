@@ -45,7 +45,7 @@ namespace GPXManager.entities.mapping
                 MapLayersViewModel = null;
             }
 
-            MapInterActionHandler = null; 
+            MapInterActionHandler = null;
             MapLayersHandler = null; ;
             MapControl = null;
             Coastline = null;
@@ -55,13 +55,16 @@ namespace GPXManager.entities.mapping
             GPXTracksLayer = null;
             GPXWaypointsLayer = null;
 
-            if(applicationIsClosing)
+            if (applicationIsClosing)
             {
                 TileProviders = null;
             }
         }
 
-
+        public static string CoastLineFile
+        {
+            get { return $@"{globalMapping.ApplicationPath}\Layers\Coastline\philippines_polygon.shp"; }
+        }
 
         static MapWindowManager()
         {
@@ -83,9 +86,8 @@ namespace GPXManager.entities.mapping
             TileProviders.Add(22, "OpenHumanitarianMap");
             //TileProviders.Add(23, "MapQuestAerial");
 
-            CoastlineFile = $@"{globalMapping.ApplicationPath}\Layers\Coastline\philippines_polygon.shp";
         }
-        public static MapWindowForm OpenMapWindow(MainWindow ownerWindow, string coastlineShapefile = "")
+        public static MapWindowForm OpenMapWindow(MainWindow ownerWindow, bool showCoastline=false)
         {
 
             MapWindowForm mwf = MapWindowForm.GetInstance();
@@ -101,26 +103,31 @@ namespace GPXManager.entities.mapping
                 MapWindowForm.Owner = ownerWindow;
                 MapWindowForm.ParentWindow = ownerWindow;
                 MapWindowForm.Show();
-                MapControl = MapWindowForm.MapControl;
+                
                 MapLayersHandler = MapWindowForm.MapLayersHandler;
                 MapInterActionHandler = MapWindowForm.MapInterActionHandler;
                 ShapefileAttributeTableManager.MapInterActionHandler = MapInterActionHandler;
                 AOIManager.Setup();
-
-                if (Coastline == null && coastlineShapefile.Length > 0)
+                MapControl = MapWindowForm.MapControl;
+                if(!MapStateFileExists)
                 {
-                    LoadCoastline(coastlineShapefile);
+                    LoadCoastline(CoastLineFile);
+                    MapControl.TileProvider = tkTileProvider.ProviderNone;
+                }
+                else if (Coastline == null && showCoastline)
+                {
+                    LoadCoastline(CoastLineFile);
                 }
             }
 
 
-            if(MapLayersWindow!=null)
+            if (MapLayersWindow != null)
             {
                 MapLayersWindow.Visibility = Visibility.Visible;
                 MapLayersWindow.BringIntoView();
             }
 
-            if(ShapeFileAttributesWindow!=null)
+            if (ShapeFileAttributesWindow != null)
             {
                 ShapeFileAttributesWindow.Visibility = Visibility.Visible;
                 ShapeFileAttributesWindow.BringIntoView();
@@ -133,13 +140,13 @@ namespace GPXManager.entities.mapping
 
         private static void MapWindowForm_LocationChanged(object sender, EventArgs e)
         {
-         if(MapLayersWindow!=null)
+            if (MapLayersWindow != null)
             {
                 MapLayersWindow.Left = MapWindowForm.Left - MapLayersWindow.Width;
-                MapLayersWindow.Top = MapWindowForm.Top ;
+                MapLayersWindow.Top = MapWindowForm.Top;
             }
 
-         if(ShapeFileAttributesWindow!=null)
+            if (ShapeFileAttributesWindow != null)
             {
 
             }
@@ -172,7 +179,7 @@ namespace GPXManager.entities.mapping
                     {
                         if (reader.IsStartElement())
                         {
-                            switch(reader.Name)
+                            switch (reader.Name)
                             {
                                 case "MapState":
                                     extentsLeft = double.Parse(reader.GetAttribute("ExtentsLeft"));
@@ -181,7 +188,7 @@ namespace GPXManager.entities.mapping
                                     extentsBottom = double.Parse(reader.GetAttribute("ExtentsBottom"));
                                     hasCoastline = reader.GetAttribute("HasCoastline") == "1";
 
-                                    if(hasCoastline)
+                                    if (hasCoastline)
                                     {
                                         isCoastlineVisible = reader.GetAttribute("CoastlineVisible") == "1";
                                     }
@@ -189,21 +196,21 @@ namespace GPXManager.entities.mapping
                                 case "Layers":
                                     break;
                                 case "Tiles":
-                                    if(reader.GetAttribute("Visible")=="0")
+                                    if (reader.GetAttribute("Visible") == "0")
                                     {
                                         MapControl.TileProvider = tkTileProvider.ProviderNone;
                                     }
                                     else
                                     {
                                         string tileProvider = reader.GetAttribute("Provider");
-                                        if (tileProvider!=null &&  tileProvider.Length > 0)
+                                        if (tileProvider != null && tileProvider.Length > 0)
                                         {
                                             MapControl.TileProvider = (tkTileProvider)Enum.Parse(typeof(tkTileProvider), tileProvider);
                                         }
                                     }
                                     break;
                                 case "Layer":
-                                    switch(reader.GetAttribute("LayerKey"))
+                                    switch (reader.GetAttribute("LayerKey"))
                                     {
                                         case "coastline":
                                             if (hasCoastline)
@@ -229,7 +236,7 @@ namespace GPXManager.entities.mapping
                                             break;
                                     }
                                     break;
-                                  
+
                             }
                         }
                     }
@@ -239,7 +246,7 @@ namespace GPXManager.entities.mapping
                 ext.SetBounds(extentsLeft, extentsBottom, 0, extentsRight, extentsTop, 0);
                 MapControl.Extents = ext;
 
-               // MapControl.Redraw();
+                // MapControl.Redraw();
             }
         }
         public static void RedrawMap()
@@ -247,13 +254,31 @@ namespace GPXManager.entities.mapping
             MapControl.Redraw();
         }
 
+        public static string LayersFolder = $@"{AppDomain.CurrentDomain.BaseDirectory}\Layers";
+        public static bool AddLGUBoundary(out string feedBack)
+        {
+
+            if (Directory.Exists($@"{LayersFolder}\LGUBoundary"))
+            {
+                var files = Directory.GetFiles($@"{LayersFolder}\LGUBoundary", "*.shp");
+                if(files.Length>=0)
+                {
+                   var result= MapLayersHandler.FileOpenHandler(files[0],"LGU boundary",layerkey:"lgu_boundary");
+                    feedBack = result.errMsg;
+                    return result.success; 
+                }
+            }
+            feedBack = "Folder for LGU boundary not found";
+            return false;
+            
+        }
         public static string LastError { get; set; }
-        
+
 
         public static bool SaveMapState()
         {
             var mapState = MapControl.SerializeMapState(false, mapping.globalMapping.ApplicationPath);
-            var filepath = $"{AppDomain.CurrentDomain.BaseDirectory}/mapstate.txt";
+            var filepath = $"{AppDomain.CurrentDomain.BaseDirectory}mapstate.txt";
             if (File.Exists(filepath))
             {
                 try
@@ -261,29 +286,29 @@ namespace GPXManager.entities.mapping
                     File.Delete(filepath);
 
                 }
-                catch(IOException)
+                catch (IOException)
                 {
                     try
                     {
                         File.WriteAllText(filepath, String.Empty);
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         LastError = ex.Message;
                         return false; ;
                     }
 
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     Logger.Log(ex);
-                    LastError = ex.Message; 
+                    LastError = ex.Message;
                     return false;
                 }
             }
 
             //insert custom settings at this point
-            string xml= InsertCustomSettingToMapState(mapState);
+            string xml = InsertCustomSettingToMapState(mapState);
 
             using (StreamWriter writer = new StreamWriter(filepath, true))
             {
@@ -294,6 +319,10 @@ namespace GPXManager.entities.mapping
             return true;
         }
 
+        public static bool MapStateFileExists
+        {
+            get { return File.Exists($@"{AppDomain.CurrentDomain.BaseDirectory}mapstate.txt"); }
+        }
         private static string  InsertCustomSettingToMapState(string xml)
         {
             XmlDocument doc = new XmlDocument();
@@ -329,7 +358,6 @@ namespace GPXManager.entities.mapping
             MapControl.Redraw();
         }
 
-        public static string CoastlineFile { get; set; }
         public static void SetLayerVisibility(int layerHandle, bool visibility)
         {
 

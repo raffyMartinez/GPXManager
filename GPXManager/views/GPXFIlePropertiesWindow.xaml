@@ -31,8 +31,8 @@
                     <RowDefinition Height="30"/>
                     <RowDefinition Height="30"/>
                 </Grid.RowDefinitions>
-                <Label Content="Filename" Margin="10 0"/>
-                <Label Content="Number of tracks" Margin="10 0" Grid.Row="1"/>
+                <Label x:Name="labelOfFileName" Content="Filename" Margin="10 0"/>
+                <Label x:Name="labelOfTrackCount" Content="Number of tracks" Margin="10 0" Grid.Row="1"/>
                 <Label x:Name="labelWaypointLabel" Content="Number of waypoints" Margin="10 0" Grid.Row="2"/>
                 <Label x:Name="labelFileName" Grid.Row="0" Grid.Column="1" Content="filename"/>
                 <Label x:Name="labelTrackCount" Grid.Row="1" Grid.Column="1" Content="tracks"/>

@@ -123,6 +123,10 @@ namespace GPXManager.entities
                 var pos = File.ReadAllText(Directory + "\\" + className + ".pos");
                 SetPlacement(new WindowInteropHelper(window).Handle, pos);
             }
+            catch(IOException)
+            {
+                //ignore
+            }
             catch (Exception exception)
             {
                 Logger.Log("Couldn't read position for " + className, exception);

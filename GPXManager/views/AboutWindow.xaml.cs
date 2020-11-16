@@ -14,6 +14,7 @@ using System.Windows.Shapes;
 
 using System.Deployment.Application;
 using System.Diagnostics;
+using GPXManager.entities;
 
 namespace GPXManager.views
 {
@@ -34,11 +35,17 @@ namespace GPXManager.views
             //FileVersionInfo exeVersion = FileVersionInfo.GetVersionInfo(exePath);
             //labelAppVerion.Content = $"App version: {exeVersion.ProductVersion}";
 
-            labelAppVerion.Content = "App version: 1.1.1";
+            labelAppVerion.Content = "App version: 1.1.2";
 
-            string mapOCXPath = $@"{AppDomain.CurrentDomain.BaseDirectory}\AxInterop.MapWinGIS.dll";
-            FileVersionInfo ocxVersionInfo = FileVersionInfo.GetVersionInfo(mapOCXPath);
-            labelMapOCXVersion.Content = $"MapWinGIS OCX version: {ocxVersionInfo.ProductVersion}";
+            if (Global.MapOCXInstalled)
+            {
+                FileVersionInfo ocxVersionInfo = FileVersionInfo.GetVersionInfo(Global.MapOCXPath);
+                labelMapOCXVersion.Content = $"MapWinGIS OCX version: {ocxVersionInfo.ProductVersion}";
+            }
+            else
+            {
+                labelMapOCXVersion.Content = "MapWinGIS mapping component not installed";
+            }
         }
 
         private void OnButtonClick(object sender, RoutedEventArgs e)

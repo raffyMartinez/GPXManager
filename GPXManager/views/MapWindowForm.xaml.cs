@@ -21,7 +21,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-//using WpfApp1;
+using System.IO;
 using Xceed.Wpf.AvalonDock.Controls;
 using WindowMenuItem = System.Windows.Controls.MenuItem;
 
@@ -56,8 +56,14 @@ namespace GPXManager.views
             if (_instance == null) _instance = new MapWindowForm();
             return _instance;
         }
+
+        
         private void OnWindowClosing(object sender, CancelEventArgs e)
         {
+            if(!MapWindowManager.MapStateFileExists)
+            {
+                SaveMapState();
+            }
             _instance = null;
             this.SavePlacement();
 
@@ -84,13 +90,24 @@ namespace GPXManager.views
             MapLayersHandler = new MapLayersHandler(MapControl);
             MapInterActionHandler = new MapInterActionHandler(MapControl, MapLayersHandler);
             MapControl.ZoomBehavior = tkZoomBehavior.zbDefault;
-            MapWindowManager.RestoreMapState(this);
-            menuMapTilesVisible.IsChecked = MapControl.TileProvider != tkTileProvider.ProviderNone;
-            menuMapTilesSelectProvider.IsEnabled = MapControl.TileProvider != tkTileProvider.ProviderNone;
+
+            if (MapWindowManager.MapStateFileExists)
+            {
+                MapWindowManager.RestoreMapState(this);
+                menuMapTilesVisible.IsChecked = MapControl.TileProvider != tkTileProvider.ProviderNone;
+                menuMapTilesSelectProvider.IsEnabled = MapControl.TileProvider != tkTileProvider.ProviderNone;
+            }
+            else
+            {
+                menuMapTilesSelectProvider.IsEnabled = false;
+            }
+
             if (MapLayersHandler.get_MapLayer("Coastline") != null)
             {
                 menuMapCoastlineVisible.IsChecked = MapLayersHandler.get_MapLayer("Coastline").Visible;
             }
+
+
             MapWindowManager.ResetCursor();
 
             MapInterActionHandler.ShapesSelected += OnMapShapeSelected;
@@ -165,10 +182,26 @@ namespace GPXManager.views
                 MapControl.TileProvider = (tkTileProvider)Enum.Parse(typeof(tkTileProvider), stpw.TileProviderID.ToString());
             }
         }
+
+        private void SaveMapState()
+        {
+            if (MapWindowManager.SaveMapState() == false)
+            {
+                System.Windows.MessageBox.Show(MapWindowManager.LastError, "GPXManager", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
         private void OnMenuClick(object sender, RoutedEventArgs e)
         {
             switch (((WindowMenuItem)sender).Name)
             {
+                case "menuAddLayerBoundaryLGU":
+                    string feedfBack = "";
+                    MapWindowManager.AddLGUBoundary(out feedfBack);
+                    if(feedfBack.Length>0)
+                    {
+                        System.Windows.MessageBox.Show(feedfBack, "GPX Manager", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                    break;
                 case "menuMapTilesSelectProvider":
                     SelectTileProvider();
                     break;
@@ -176,10 +209,7 @@ namespace GPXManager.views
                     Close();
                     break;
                 case "menuSaveMapState":
-                    if (MapWindowManager.SaveMapState() == false)
-                    {
-                        System.Windows.MessageBox.Show(MapWindowManager.LastError, "GPXManager", MessageBoxButton.OK, MessageBoxImage.Error);
-                    }
+                    SaveMapState();
                     break;
                 case "menuAOICreate":
                     var aoiw = new AOIWindow();
@@ -208,7 +238,7 @@ namespace GPXManager.views
                     var coast = MapLayersHandler.get_MapLayer("Coastline");
                     if(coast==null)
                     {
-                        MapWindowManager.LoadCoastline(MapWindowManager.CoastlineFile);
+                        MapWindowManager.LoadCoastline(MapWindowManager.CoastLineFile);
                         coast = MapLayersHandler.get_MapLayer("Coastline");
                     }
                     MapLayersHandler.EditLayer(coast.Handle, coast.Name, menuItem.IsChecked);

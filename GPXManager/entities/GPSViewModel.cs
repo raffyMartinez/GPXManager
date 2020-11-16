@@ -226,27 +226,27 @@ namespace GPXManager.entities
 
             if (isNew && (gps.DeviceName == null || gps.DeviceName.Length < 5))
             {
-                evr.AddMessage("Device name must be at least 5 letters long");
+                evr.AddMessage("Device name cannot be empty and must be at least 5 letters long");
             }
 
             if (isNew && (gps.Code==null || gps.Code.Length >6))
             {
-                evr.AddMessage("Device code must not exceed 6 letters long");
+                evr.AddMessage("Device code cannot be empty and must not exceed 6 letters long");
             }
 
             if (gps.Brand == null || gps.Brand.Length == 0)
             {
-                evr.AddMessage("Brand must not be empty");
+                evr.AddMessage("Brand  cannot be empty");
             }
 
             if (gps.Model==null || gps.Model.Length == 0)
             {
-                evr.AddMessage("Model must not be empty");
+                evr.AddMessage("Model cannot be empty");
             }
 
             if (gps.Folder == null || gps.Folder.Length == 0)
             {
-                evr.AddMessage("Folder must not be empty");
+                evr.AddMessage("Folder cannot be empty");
             }
 
             if (!Directory.Exists($"{gps.Device.Disks[0].Caption}\\{gps.Folder}"))
@@ -266,12 +266,13 @@ namespace GPXManager.entities
                 && GPSCodeExist(gps.Code))
                 evr.AddMessage("Device code already used");
 
-            if(isNew && gps.Code.Length>0 && GPSCodeExist(gps.Code))
+           
+            if(isNew && gps.Code!=null &&  gps.Code.Length>0 && GPSCodeExist(gps.Code))
             {
                 evr.AddMessage("Device code already used");   
             }
 
-            if (isNew && gps.DeviceName.Length > 0 && GPSDeviceNameExist(gps.DeviceName))
+            if (isNew && gps.DeviceName!=null &&  gps.DeviceName.Length > 0 && GPSDeviceNameExist(gps.DeviceName))
             {
                 evr.AddMessage("Device name already used");
             }

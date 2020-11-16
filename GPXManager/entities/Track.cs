@@ -106,6 +106,26 @@ namespace GPXManager.entities
         }
         #endregion
 
+
+        public List<WaypointLocalTime> TrackPtsInLocalTine
+        {
+            get
+            {
+                if (Waypoints.Count > 0)
+                {
+                    var pts = new List<WaypointLocalTime>();
+                    foreach (var wpt in Waypoints)
+                    {
+                        pts.Add(new WaypointLocalTime(wpt));
+                    }
+                    return pts;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
         public void ResetStatistics()
         {
             this.statisics = null;
@@ -183,7 +203,7 @@ namespace GPXManager.entities
             }
         }
 
-        public void Read(string xml)
+        public void Read(string xml, bool stayInGMT = false)
         {
             Waypoints.Clear();
             XmlDocument doc = new XmlDocument();
@@ -193,14 +213,34 @@ namespace GPXManager.entities
             Name = nameNode.Item(0).InnerText;
 
             XmlNodeList parentNode = doc.GetElementsByTagName("trkpt");
+
+            Waypoint wpt = null;
             foreach (XmlNode pt in parentNode)
             {
-                Waypoint wpt = new Waypoint
+                if (stayInGMT)
                 {
-                    Latitude = double.Parse(pt.Attributes["lat"].Value),
-                    Longitude = double.Parse(pt.Attributes["lon"].Value),
-                    Time = DateTime.Parse( pt.InnerText)
-                };
+                    wpt = new Waypoint
+                    {
+                        Latitude = double.Parse(pt.Attributes["lat"].Value),
+                        Longitude = double.Parse(pt.Attributes["lon"].Value),
+
+                        //BEWARE: pt.inner text is time in GMT and when parsed
+                        //it converts it to local time which could surprise you
+                        Time = (DateTime)DateTimeOffset.Parse(pt.InnerText).DateTime
+                    };
+                }
+                else
+                {
+                    wpt = new Waypoint
+                    {
+                        Latitude = double.Parse(pt.Attributes["lat"].Value),
+                        Longitude = double.Parse(pt.Attributes["lon"].Value),
+
+                        //BEWARE: pt.inner text is time in GMT and when parsed
+                        //it converts it to local time which could surprise you
+                        Time = DateTime.Parse(pt.InnerText)
+                    };
+                }
                 Waypoints.Add(wpt);
             }
 

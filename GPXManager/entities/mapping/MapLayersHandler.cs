@@ -698,7 +698,7 @@ namespace GPXManager.entities.mapping
         /// </summary>
         /// <param name="fileName"></param>
         /// <returns></returns>
-        public (bool success, string errMsg) FileOpenHandler(string fileName, string layerName = "", bool reproject = false)
+        public (bool success, string errMsg) FileOpenHandler(string fileName, string layerName = "", bool reproject = false, string layerkey = "")
         {
             var success = false;
             var errMsg = "";
@@ -728,7 +728,7 @@ namespace GPXManager.entities.mapping
                                     shapefile = sf;
                                 }
                             }
-                            if (AddLayer(shapefile, layerName) < 0)
+                            if (AddLayer(shapefile, layerName, layerKey:layerkey) < 0)
                             {
                                 success = false;
                                 errMsg = "Failed to add layer to map";
@@ -749,7 +749,7 @@ namespace GPXManager.entities.mapping
                             success = image != null;
                             if (success)
                             {
-                                if (AddLayer(image) < 0)
+                                if (AddLayer(image,layerKey:layerkey) < 0)
                                 {
                                     success = false;
                                     errMsg = "Failed to add layer to map";
@@ -768,7 +768,7 @@ namespace GPXManager.entities.mapping
                         success = grid.Open(fileName, GridDataType.DoubleDataType, false, GridFileType.UseExtension, null);
                         if (success)
                         {
-                            AddLayer(grid, Path.GetFileName(fileName), true, true);
+                            AddLayer(grid, Path.GetFileName(fileName), true, true,layerKey:layerkey);
                         }
                     }
                 }

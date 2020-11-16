@@ -36,35 +36,52 @@ namespace GPXManager.views
         {
 
 
- 
-            
-            labelTrackCount.Content= GPXFile.TrackCount.ToString();
-            if (GPXFile.FileInfo != null)
+            if (GPXXML != null && GPXXML.Length > 0)
             {
-                labelFileName.Content = GPXFile.FileInfo.FullName;
+                labelFileName.Content = "Extracted track of fishing trip";
+                Track tr = new Track();
+                tr.Read(GPXXML,true);
+                var stats = tr.Statistics;
+                if(tr.Waypoints.Count>0)
+                {
+                    labelOfFileName.Content = "Description";
+                    labelOfTrackCount.Content = "Length";
+                    labelTrackCount.Content = stats.Length.ToString("N2")+ " km";
+                    labelGPXType.Content = "Track waypoints";
+                    dataGridNamedWaypoints.DataContext = tr.TrackPtsInLocalTine;
+                    labelWaypointCount.Content = tr.Waypoints.Count.ToString();
+                    labelWaypointLabel.Content = "Number of track pts.";
+                }
+                
             }
             else
             {
-                labelFileName.Content = GPXFile.FileName;
-            }
+                labelTrackCount.Content = GPXFile.TrackCount.ToString();
+                if (GPXFile.FileInfo != null)
+                {
+                    labelFileName.Content = GPXFile.FileInfo.FullName;
+                }
+                else
+                {
+                    labelFileName.Content = GPXFile.FileName;
+                }
 
+                if (GPXFile.WaypointCount > 0)
+                {
+                    labelWaypointLabel.Content = "Number of waypoints";
+                    labelWaypointCount.Content = GPXFile.WaypointCount.ToString();
+                    labelGPXType.Content = "Waypoints";
+                    dataGridNamedWaypoints.DataContext = GPXFile.NamedWaypointsInLocalTime;
+                }
+                else
+                {
+                    //foreach(var item in GPXFile.w)
+                    labelGPXType.Content = "Track waypoints";
+                    dataGridNamedWaypoints.DataContext = GPXFile.TrackWaypoinsInLocalTime;
+                    labelWaypointCount.Content = GPXFile.TrackPointsCount.ToString();
+                    labelWaypointLabel.Content = "Number of track pts.";
 
-
-            if (GPXFile.WaypointCount > 0)
-            {
-                labelWaypointLabel.Content = "Number of waypoints";
-                labelWaypointCount.Content = GPXFile.WaypointCount.ToString();
-                labelGPXType.Content = "Waypoints";
-                dataGridNamedWaypoints.DataContext = GPXFile.NamedWaypointsInLocalTime;
-            }
-            else
-            {
-                //foreach(var item in GPXFile.w)
-                labelGPXType.Content = "Track waypoints";
-                dataGridNamedWaypoints.DataContext = GPXFile.TrackWaypoinsInLocalTime;
-                labelWaypointCount.Content = GPXFile.TrackPointsCount.ToString();
-                labelWaypointLabel.Content = "Number of track pts.";
-
+                }
             }
             dataGridNamedWaypoints.Columns.Add(new DataGridTextColumn { Header = "Name", Binding = new Binding("Name") });
             dataGridNamedWaypoints.Columns.Add(new DataGridTextColumn { Header = "Longitude", Binding = new Binding("Longitude") });
@@ -85,6 +102,7 @@ namespace GPXManager.views
             this.SavePlacement(); 
         }
 
+        public string GPXXML { get; set; }
         public GPXFile GPXFile { get; set; }
         public GPSWaypointSet GPSWaypointSet { get; set; }
         public void Dispose()

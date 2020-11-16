@@ -174,6 +174,8 @@ namespace GPXManager
                 menuClearTables.Visibility = Visibility.Visible;
                 //menuMapper.Visibility = Visibility.Visible;
             }
+
+            SetMapButtonsEnabled();
         }
 
         private void OnComboSelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -366,8 +368,13 @@ namespace GPXManager
                         ((TreeViewItem)selectedItem.Items[0]).Header = $"{_detectedDevice.Disks[0].Caption}\\{_gps.Folder}";
                         ((TreeViewItem)selectedItem.Items[0]).Tag = "gpx_folder";
                         _detectedDevice.GPS = _gps;
+                        Entities.GPXFileViewModel.GetFilesFromDevice(_detectedDevice);
+                        //Entities.DeviceGPXViewModel.RefreshArchivedGPXCollection(_gps);
                         AddTripNode(selectedItem);
+                        ShowGPXMonthNodes((TreeViewItem)selectedItem.Items[0], _gps);
                         buttonSave.Visibility = Visibility.Collapsed;
+                        buttonEjectDevice.Visibility = Visibility.Visible;
+                        selectedItem.IsExpanded = true;
                     }
                     else
                     {
@@ -402,11 +409,10 @@ namespace GPXManager
         {
             int h = -1;
             List<int> handles = new List<int>();
-            string coastLineFile = $@"{globalMapping.ApplicationPath}\Layers\Coastline\philippines_polygon.shp";
-            MapWindowManager.OpenMapWindow(this, coastLineFile);
+            MapWindowManager.OpenMapWindow(this, true);
             if (MapWindowManager.Coastline == null)
             {
-                MapWindowManager.LoadCoastline(coastLineFile);
+                MapWindowManager.LoadCoastline(MapWindowManager.CoastLineFile);
             }
 
             var datagrid = (DataGrid)LayerSelector;
@@ -434,13 +440,35 @@ namespace GPXManager
             MapWindowManager.MapControl.Redraw();
         }
 
-        
+        private void SetMapButtonsEnabled()
+        {
+            bool itemEnabled = Global.MapOCXInstalled;
+            double buttonOpacity = .20d;
+            buttonMap.IsEnabled = itemEnabled;
+            menuMapper.IsEnabled = itemEnabled;
+            menuCalendaredTripMap.IsEnabled = itemEnabled;
+            menuGPXMap.IsEnabled = itemEnabled;
+            menuGPXRemoveAllFromMap.IsEnabled = itemEnabled;
+            menuGPXRemoveFromMap.IsEnabled = itemEnabled;
+            menuTripMap.IsEnabled = itemEnabled;
+
+            if(!itemEnabled)
+            {
+                buttonMap.Opacity = buttonOpacity;
+                menuMapper.Opacity = buttonOpacity;
+                menuCalendaredTripMap.Opacity = buttonOpacity;
+                menuGPXMap.Opacity = buttonOpacity;
+                menuGPXRemoveAllFromMap.Opacity = buttonOpacity;
+                menuGPXRemoveFromMap.Opacity = buttonOpacity;
+                menuTripMap.Opacity = buttonOpacity;
+            }
+        }
         private void ShowGPXOnMap(bool showInMap = true)
         {
             int h = -1;
             List<int> handles = new List<int>();
             string coastLineFile = $@"{globalMapping.ApplicationPath}\Layers\Coastline\philippines_polygon.shp";
-            MapWindowManager.OpenMapWindow(this, coastLineFile);
+            MapWindowManager.OpenMapWindow(this, true);
             if (MapWindowManager.Coastline == null)
             {
                 MapWindowManager.LoadCoastline(coastLineFile);
@@ -540,6 +568,7 @@ namespace GPXManager
                 labelNoData.Visibility = Visibility.Visible;
                 labelNoData.Content = "There are no trips saved in the database";
                 labelTitle.Visibility = Visibility.Hidden;
+                treeCalendar.Visibility = Visibility.Collapsed;
             }
         }
         private void HideTrees()
@@ -943,15 +972,15 @@ namespace GPXManager
             //setup trip data grid
             dataGridTrips.AutoGenerateColumns = false;
             dataGridTrips.Columns.Add(new DataGridTextColumn { Header = "Trip ID", Binding = new Binding("TripID") });
-            dataGridTrips.Columns.Add(new DataGridTextColumn { Header = "Name of operator", Binding = new Binding("OperatorName") });
-            dataGridTrips.Columns.Add(new DataGridTextColumn { Header = "Name of fishing vessel", Binding = new Binding("VesselName") });
+            dataGridTrips.Columns.Add(new DataGridTextColumn { Header = "Operator", Binding = new Binding("OperatorName") });
+            dataGridTrips.Columns.Add(new DataGridTextColumn { Header = "Fishing vessel", Binding = new Binding("VesselName") });
             dataGridTrips.Columns.Add(new DataGridTextColumn { Header = "Gear", Binding = new Binding("Gear.Name") });
             dataGridTrips.Columns.Add(new DataGridTextColumn { Header = "Other gear", Binding = new Binding("OtherGear") });
 
             col = new DataGridTextColumn()
             {
                 Binding = new Binding("DateTimeDeparture"),
-                Header = "Date and time departed"
+                Header = "Departure"
             };
             col.Binding.StringFormat = "MMM-dd-yyyy HH:mm";
             dataGridTrips.Columns.Add(col);
@@ -959,7 +988,7 @@ namespace GPXManager
             col = new DataGridTextColumn()
             {
                 Binding = new Binding("DateTimeArrival"),
-                Header = "Date and time arrived"
+                Header = "Arrival"
             };
             col.Binding.StringFormat = "MMM-dd-yyyy HH:mm";
             dataGridTrips.Columns.Add(col);
@@ -1110,6 +1139,7 @@ namespace GPXManager
             labelDeviceName.Visibility = Visibility.Collapsed;
             textBlock.Visibility = Visibility.Collapsed;
             buttonEjectDevice.Visibility = Visibility.Visible;
+            labelCalendarMonth.Visibility = Visibility.Collapsed;
         }
         private void ShowTripData()
         {
@@ -1253,6 +1283,16 @@ namespace GPXManager
                                 gps = (GPS)((TreeViewItem)selectedNode.Parent).Tag;
                                 month_year = (DateTime)selectedNode.Tag;
 
+                                if(!Entities.DeviceGPXViewModel.ArchivedGPXFiles.Keys.Contains(gps))
+                                {
+                                    Entities.DeviceGPXViewModel.RefreshArchivedGPXCollection(gps);
+
+                                }
+                                if(Entities.DeviceGPXViewModel.DeviceGPXCollection.Count(t=>t.GPS.DeviceID==gps.DeviceID)!= Entities.DeviceGPXViewModel.ArchivedGPXFiles[gps].Count)
+                                {
+                                    Entities.DeviceGPXViewModel.RefreshArchivedGPXCollection(gps);
+                                }
+
                                 List<GPXFile> archivedGPX = Entities.DeviceGPXViewModel.ArchivedGPXFiles[gps]
                                     .Where(t => t.DateRangeStart >= month_year)
                                     .Where(t => t.DateRangeEnd <= month_year.AddMonths(1))
@@ -1277,6 +1317,8 @@ namespace GPXManager
                                 var tripCalendarVM = new TripCalendarViewModel(_tripMonthYear);
                                 dataGridCalendar.Visibility = Visibility.Visible;
                                 dataGridCalendar.DataContext = tripCalendarVM.DataTable;
+                                labelCalendarMonth.Visibility = Visibility.Visible;
+                                labelCalendarMonth.Content = _tripMonthYear.ToString("MMMM, yyyy");
                                 break;
                             case "Trips by GPS":
                                 labelTitle.Content = "Details of trips tracked by GPS";
@@ -1651,7 +1693,13 @@ namespace GPXManager
                 root.IsExpanded = true;
                 if(root.Items.Count==0)
                 {
-                    MessageBox.Show("There are no archived GPX files in the database","GPX Manager",MessageBoxButton.OK,MessageBoxImage.Information);
+                    //MessageBox.Show("There are no archived GPX files in the database","GPX Manager",MessageBoxButton.OK,MessageBoxImage.Information);
+
+                    labelNoData.Visibility = Visibility.Visible;
+                    labelNoData.Content = "There are no archived GPX files in the database";
+                    labelTitle.Visibility = Visibility.Hidden;
+                    treeArchive.Visibility = Visibility.Collapsed;
+
                 }
             }
             else
@@ -1691,6 +1739,11 @@ namespace GPXManager
                     ShowMap();
                     break;
             }
+        }
+
+        private void OnStatusLabelDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            Process.Start($"{System.IO.Path.GetDirectoryName(((System.Windows.Controls.Label)sender).Content.ToString())}");
         }
     }
 }

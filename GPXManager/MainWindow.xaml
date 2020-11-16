@@ -120,7 +120,8 @@
                 <TextBlock x:Name="textBlock" Margin="10 0" Visibility="Visible" Text="this is a text block"  Foreground="{DynamicResource {x:Static SystemColors.ActiveCaptionTextBrushKey}}" HorizontalAlignment="Left"/>
                 <Label x:Name="labelNoData" Margin="10" Visibility="Collapsed"
                        Content="There is no data" HorizontalContentAlignment="Center" FontSize="20" FontWeight="Bold"/>
-                
+
+                <Label x:Name="labelCalendarMonth" Content="April, 2020" HorizontalAlignment="Center" FontWeight="Bold" FontSize="20" Visibility="Collapsed"/>
                 <StackPanel x:Name="gpsPanel" Visibility="Collapsed">
                     <xctk:PropertyGrid x:Name="PropertyGrid" ShowSearchBox="False" ShowSortOptions="False"
                                AutoGenerateProperties="False" Visibility="Visible" 
@@ -220,7 +221,7 @@
 
         </Grid>
         <StatusBar Grid.Row="3" Grid.ColumnSpan="3">
-            <Label x:Name="statusLabel" Content="This is a status label"/>
+            <Label x:Name="statusLabel" Content="This is a status label" MouseDoubleClick="OnStatusLabelDoubleClick"/>
         </StatusBar>
     </Grid>
 

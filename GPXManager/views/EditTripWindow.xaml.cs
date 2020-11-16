@@ -27,6 +27,8 @@ namespace GPXManager.views
         private TripEdited _trip;
         private List<Waypoint> _waypoints;
         private string _prettyGPX;
+        private string _trackXML;
+        private PropertyItem _selectedProperty;
         private DateTime _oldDepartDate;
         DateTime _oldArriveDate;
         private bool _dateTimeDepartureArrivalChanged;
@@ -142,7 +144,7 @@ namespace GPXManager.views
                     _trip.Track.FileName = trackFileName;
                     _trip.Track.Waypoints = _waypoints;
                     _trip.Track.Name = $"{GPS.DeviceName} {timeStamp.ToString("MMM-dd-yyyy HH:mm")}";
-                    _trip.Track.SerializeToString(GPS, timeStamp, trackFileName);
+                    _trackXML= _trip.Track.SerializeToString(GPS, timeStamp, trackFileName);
                     _trip.Track.ResetStatistics();
                     PropertyGrid.Update();
                     _dateTimeDepartureArrivalChanged = false;
@@ -221,8 +223,31 @@ namespace GPXManager.views
 
         private void OnPropertyValueChanged(object sender, PropertyValueChangedEventArgs e)
         {
-            var prpName = ((PropertyItem)e.OriginalSource).PropertyName;
-            _dateTimeDepartureArrivalChanged = (prpName == "DateTimeDeparture" || prpName == "DateTimeArrival");
+            _selectedProperty = (PropertyItem)e.OriginalSource;
+            _dateTimeDepartureArrivalChanged = (_selectedProperty.PropertyName == "DateTimeDeparture" || _selectedProperty.PropertyName == "DateTimeArrival");
+        }
+
+        private void OnPropertyDblClick(object sender, MouseButtonEventArgs e)
+        {
+            switch(_selectedProperty.PropertyName)
+            {
+                case "TrackSummary":
+                    if(_selectedProperty.Value.ToString().Length>0)
+                    {
+                        GPXFIlePropertiesWindow gpw = new GPXFIlePropertiesWindow();
+                        gpw.GPXXML = _trackXML;
+                        gpw.Owner = this;
+                        gpw.ShowDialog();
+                    }
+                    break;
+            }
+        }
+
+
+
+        private void OnPropertyChanged(object sender, RoutedPropertyChangedEventArgs<PropertyItemBase> e)
+        {
+            _selectedProperty = (PropertyItem)e.NewValue;
         }
     }
 }

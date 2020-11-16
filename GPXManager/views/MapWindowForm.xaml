@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:GPXManager.views"
         mc:Ignorable="d"
         Loaded="OnWindowLoaded"
-        Title="Map" Height="450" Width="800">
+        Title="Map" Height="744.18" Width="800">
     <Grid Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
         <Grid.RowDefinitions>
             <RowDefinition Height="30"/>
@@ -18,7 +18,6 @@
             <MenuItem Header="File">
                 <MenuItem Header="Layers">
                     <MenuItem Header="Add ..." x:Name="menuAddLayer" Click="OnMenuClick"/>
-                    <MenuItem Header="Add coastline ..." x:Name="menuAddLayerCoastline" Click="OnMenuClick"/>
                     <MenuItem Header="Add LGU boundary ..." x:Name="menuAddLayerBoundaryLGU" Click="OnMenuClick"/>
                     <MenuItem Header="Add LGU poblacion ..." x:Name="menuAddLayerBoundaryLGUPoblacion" Click="OnMenuClick"/>
                     <MenuItem Header="Add barangay boundary ..." x:Name="menuAddLayerBoundaryBarangay" Click="OnMenuClick"/>

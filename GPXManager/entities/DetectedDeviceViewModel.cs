@@ -24,6 +24,7 @@ namespace GPXManager.entities
             return DetectedDeviceCollection.ToList();
         }
 
+
         public DetectedDevice GetDevice(string serialNumber)
         {
             CurrentEntity = DetectedDeviceCollection.FirstOrDefault(n => n.SerialNumber == serialNumber);
