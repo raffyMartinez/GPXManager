@@ -109,10 +109,14 @@ namespace GPXManager.entities
             }
             return wpts;
         }
-        public List<Waypoint> ReadWaypointsFromFile(string filename, GPS gps)
+
+        public List<Waypoint> ReadWaypointsFromFile( DeviceGPX deviceGPX=null, bool waypointsOnly=false)
         {
+            GPS gps = deviceGPX.GPS;
+            string filename = deviceGPX.Filename;
             List<Waypoint> wpts = new List<Waypoint>();
-            using (XmlReader reader = XmlReader.Create(filename))
+
+            using (XmlReader reader = XmlReader.Create(new StringReader(deviceGPX.GPX)))
             {
                 while (reader.Read())
                 {
@@ -122,50 +126,53 @@ namespace GPXManager.entities
                         {
                             Waypoint namedWaypoint = new Waypoint();
                             namedWaypoint.Read(reader);
-                            namedWaypoint.GPXFileName = Path.GetFileName(filename);
+                            namedWaypoint.GPXFileName = Path.GetFileName(deviceGPX.Filename);
                             wpts.Add(namedWaypoint);
                         }
                     }
                 }
             }
 
-            if (wpts.Count > 0)
-            { 
-                GPSWaypointSet gws = new GPSWaypointSet
+            if (!waypointsOnly)
+            {
+                if (wpts.Count > 0)
                 {
-                    GPS = gps,
-                    FullFileName = filename,
-                    Waypoints = wpts
-                };
-
-
-                if (Waypoints.Count==0)
-                {
-                    var list = new List<GPSWaypointSet>();
-                    list.Add(gws);
-                    Waypoints.Add(gps, list);
-                }
-                else
-                {
-                    if(Waypoints.ContainsKey(gps))
+                    GPSWaypointSet gws = new GPSWaypointSet
                     {
-                        if(Waypoints[gps].Where(t => t.FileName == gws.FileName).FirstOrDefault()==null)
-                        {
-                            Waypoints[gps].Add(gws);
-                        }
+                        GPS = gps,
+                        FullFileName = filename,
+                        Waypoints = wpts
+                    };
 
-                    }
-                    else
+
+                    if (Waypoints.Count == 0)
                     {
                         var list = new List<GPSWaypointSet>();
                         list.Add(gws);
                         Waypoints.Add(gps, list);
                     }
+                    else
+                    {
+                        if (Waypoints.ContainsKey(gps))
+                        {
+                            if (Waypoints[gps].Where(t => t.FileName == gws.FileName).FirstOrDefault() == null)
+                            {
+                                Waypoints[gps].Add(gws);
+                            }
+
+                        }
+                        else
+                        {
+                            var list = new List<GPSWaypointSet>();
+                            list.Add(gws);
+                            Waypoints.Add(gps, list);
+                        }
+                    }
                 }
-            }   
 
+            }
             return wpts;
-
         }
+
     }
 }

@@ -35,6 +35,8 @@ namespace GPXManager.entities.mapping
         public delegate void ExtenntCreatedHandler(MapInterActionHandler s, LayerEventArg e);
         public event ExtenntCreatedHandler ExtentCreated;
 
+        public event EventHandler SelectionCleared;
+
         public tkCursorMode MapCursorMode
         {
             get { return _mapCursorMode; }
@@ -312,6 +314,11 @@ namespace GPXManager.entities.mapping
                                 var lyArg = new LayerEventArg(_currentMapLayer.Handle, _selectedShapeIndexes);
                                 ShapesSelected(this, lyArg);
                             }
+
+                        }
+                        else
+                        {
+                            SelectionCleared?.Invoke(this, EventArgs.Empty);
                         }
                         _axMap.Redraw();
                         Selection?.Invoke(this, EventArgs.Empty);

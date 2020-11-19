@@ -15,6 +15,7 @@ using System.Windows.Shapes;
 using System.Deployment.Application;
 using System.Diagnostics;
 using GPXManager.entities;
+using System.Reflection;
 
 namespace GPXManager.views
 {
@@ -31,11 +32,12 @@ namespace GPXManager.views
 
         private void AboutWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            //string exePath = $@"{AppDomain.CurrentDomain.BaseDirectory}\GPXManager.exe";
-            //FileVersionInfo exeVersion = FileVersionInfo.GetVersionInfo(exePath);
-            //labelAppVerion.Content = $"App version: {exeVersion.ProductVersion}";
 
-            labelAppVerion.Content = "App version: 1.1.2";
+            var version = Assembly.GetExecutingAssembly().GetName().Version;
+            var buildDate = new DateTime(2000, 1, 1).AddDays(version.Build).AddSeconds(version.Revision * 2);
+            var displyableVersion = $"Version: {version} ({buildDate.ToString("MMM-dd-yyyy H:mm:ss")})";
+
+            labelAppVerion.Content = displyableVersion;
 
             if (Global.MapOCXInstalled)
             {

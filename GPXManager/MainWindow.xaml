@@ -144,6 +144,8 @@
                           MouseDoubleClick="OnGPSGridDoubleClick" SelectionChanged="OnDataGridSelectionChanged">
                     <DataGrid.ContextMenu>
                         <ContextMenu>
+                            <MenuItem Header="Details" Click="OnMenuClick" x:Name="menuCalendaredTripViewGPXDetails" Visibility="Collapsed"/>
+                            <MenuItem Header="View GPX file" Click="OnMenuClick" x:Name="menuCalendaredTripViewGPX" Visibility="Visible"/>
                             <MenuItem Header="Show in map" Click="OnMenuClick" x:Name="menuCalendaredTripMap" Visibility="Visible">
                                 <MenuItem.Icon>
                                     <Image Source="map screen.png" OpacityMask="White" />
@@ -163,6 +165,8 @@
                             <ContextMenu>
                                 <MenuItem Header="Add trip based on track" Click="OnMenuClick" x:Name="menuAddTripFromTRack" Visibility="Visible"/>
                                 <MenuItem Header="Details" Click="OnMenuClick" x:Name="menuGPXFileDetails" Visibility="Visible"/>
+                                <MenuItem Header="View GPX file" Click="OnMenuClick" x:Name="menuGPXFileView" Visibility="Visible"/>
+                                <MenuItem Header="Locate track GPX" Click="OnMenuClick" x:Name="menuGPXFileLocateTrack" Visibility="Visible"/>
                                 <MenuItem Header="Show in map" Click="OnMenuClick" x:Name="menuGPXMap" Visibility="Visible">
                                     <MenuItem.Icon>
                                         <Image Source="map screen.png" OpacityMask="White" />
@@ -189,6 +193,7 @@
                               Margin="0 0 10 20" SelectionChanged="OnDataGridSelectionChanged" IsReadOnly="True" MouseDoubleClick="OnGridDoubleClick">
                         <DataGrid.ContextMenu>
                             <ContextMenu>
+                                <MenuItem Header="View GPX" Click="OnMenuClick" x:Name="menuViewTripGPX" Visibility="Visible"/>
                                 <MenuItem Header="Show in map" Click="OnMenuClick" x:Name="menuTripMap" Visibility="Visible">
                                     <MenuItem.Icon>
                                         <Image Source="map screen.png" OpacityMask="White" />

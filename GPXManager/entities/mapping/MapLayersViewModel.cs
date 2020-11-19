@@ -33,6 +33,10 @@ namespace GPXManager.entities.mapping
             MapWindowManager.MapWindowForm.Title = "Droppin'";
         }
 
+        public MapLayer FirstLayer()
+        {
+            return MapLayerCollection[0];
+        }
 
         public void RefreshCollection()
         {
@@ -70,6 +74,7 @@ namespace GPXManager.entities.mapping
                 //fill up the event argument class with the layer item
                 LayerEventArg lp = new LayerEventArg(s.CurrentMapLayer.Handle, s.CurrentMapLayer.Name, s.CurrentMapLayer.Visible, s.CurrentMapLayer.VisibleInLayersUI, s.CurrentMapLayer.LayerType);
                 CurrentLayer(this, lp);
+                
             }
         }
 

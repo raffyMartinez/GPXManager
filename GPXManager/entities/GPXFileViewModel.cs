@@ -26,6 +26,7 @@ namespace GPXManager.entities
             GPXFile gpxFile = new GPXFile(deviceGPX.Filename);
             gpxFile.GPS = deviceGPX.GPS;
             gpxFile.ComputeStats(deviceGPX);
+            gpxFile.XML = deviceGPX.GPX;
             return gpxFile;
         }
         public Dictionary<DateTime,List<GPXFile>>FilesByMonth(GPS gps)
@@ -137,12 +138,14 @@ namespace GPXManager.entities
 
                     foreach (var file in myFiles)
                     {
-                        Entities.WaypointViewModel.ReadWaypointsFromFile(file.FullName, device.GPS);
-
+                        string xml = File.OpenText(file.FullName).ReadToEnd();
+                        DeviceGPX dg = new DeviceGPX { GPX = xml, Filename = file.Name,GPS = device.GPS };
+                        Entities.WaypointViewModel.ReadWaypointsFromFile(dg);
                         GPXFile gf = new GPXFile(file)
                         {
                             GPS = device.GPS,
-                            DriveName = device.Disks[0].Caption
+                            DriveName = device.Disks[0].Caption,
+                            XML = xml
                         };
 
 

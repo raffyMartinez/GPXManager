@@ -50,7 +50,12 @@ namespace GPXManager.entities.mapping
             MapControl = null;
             Coastline = null;
             MapWindowForm = null;
-            MapLayersWindow = null;
+
+            if (MapLayersWindow != null)
+            {
+                MapLayersWindow = null;
+            }
+
             ShapeFileAttributesWindow = null;
             GPXTracksLayer = null;
             GPXWaypointsLayer = null;
@@ -66,14 +71,25 @@ namespace GPXManager.entities.mapping
             get { return $@"{globalMapping.ApplicationPath}\Layers\Coastline\philippines_polygon.shp"; }
         }
 
+       
         static MapWindowManager()
         {
+            GlobalSettings gs = new GlobalSettings();
+            if (Global.Settings?.BingAPIKey.Length > 0)
+            {
+                gs.BingApiKey = Global.Settings.BingAPIKey;
+            }
+
             TileProviders.Add(0, "OpenStreetMap");
             TileProviders.Add(1, "OpenCycleMap");
             TileProviders.Add(2, "OpenTransportMap");
-            //TileProviders.Add(3, "BingMaps");
-            //TileProviders.Add(4, "BingSatellite");
-            //TileProviders.Add(5, "BingHybrid");
+
+            if (Global.Settings?.BingAPIKey.Length > 0)
+            {
+                TileProviders.Add(3, "BingMaps");
+                TileProviders.Add(4, "BingSatellite");
+                TileProviders.Add(5, "BingHybrid");
+            }
             TileProviders.Add(6, "GoogleMaps");
             //TileProviders.Add(7, "GoogleSatellite");
             //TileProviders.Add(8, "GoogleHybrid");
@@ -435,6 +451,11 @@ namespace GPXManager.entities.mapping
                 
             }
             return MapLayersHandler.CurrentMapLayer.Handle;
+        }
+
+        internal static void LabelTripWaypopints()
+        {
+            
         }
 
         public static int MapTripWaypoints(List<TripWaypoint>waypoints, out int shpIndex, out List<int>handles,  GPS gps, string filename,bool showInMap=true)

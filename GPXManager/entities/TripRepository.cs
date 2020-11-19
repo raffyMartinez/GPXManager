@@ -34,9 +34,10 @@ namespace GPXManager.entities
                         foreach (DataRow dr in dt.Rows)
                         {
                             var track = new Track();
-                            if (dr["TrackGPX"].ToString().Length > 0)
+                            var gpx = dr["TrackGPX"].ToString();
+                            if (gpx.Length > 0)
                             {
-                                track.Read(dr["TrackGPX"].ToString());
+                                track.Read(gpx);
                                 track.FileName = dr["GPXFileName"].ToString();
                                 track.GPS = Entities.GPSViewModel.GetGPSEx(dr["DeviceID"].ToString());
                             }
@@ -53,7 +54,9 @@ namespace GPXManager.entities
                                 OtherGear = dr["OtherGear"].ToString(),
                                 Track = track,
                                 Notes = dr["Notes"].ToString(),
-                                GPXFileName = dr["GPXFileName"].ToString()
+                                GPXFileName = dr["GPXFileName"].ToString(),
+                                XML = gpx,
+                                DateAdded = (DateTime)dr["DateAdded"]
                             };
                             thisList.Add(t);
                         }
@@ -103,7 +106,7 @@ namespace GPXManager.entities
                               '{t.OtherGear}',
                               '{t.Track.XMLString}',
                               '{t.Notes}',
-                              '{DateTime.Now.ToString("dd-MMM-yyyy HH:mm:ss")}',
+                              '{t.DateAdded.ToString("MMM-dd-yyyy HH:mm:ss")}',
                               '{t.GPXFileName}' 
                            )";
                 using (OleDbCommand update = new OleDbCommand(sql, conn))

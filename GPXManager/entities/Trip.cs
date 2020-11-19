@@ -35,6 +35,7 @@ namespace GPXManager.entities
             Track = trip.Track;
             Notes = trip.Notes;
             GPXFileName = trip.GPXFileName;
+            XML = trip.XML;
 
         }
 
@@ -56,6 +57,14 @@ namespace GPXManager.entities
         }
         public Track Track { get; internal set; }
 
+
+        public DateTime MonthYear
+        {
+            get
+            {
+                return new DateTime(DateTimeDeparture.Year, DateTimeDeparture.Month, 1);
+            }
+        }
         [Editor(typeof(DateTimePickerWithTime), typeof(DateTimePicker))]
         public DateTime DateTimeDeparture { get; set; }
 
@@ -68,6 +77,8 @@ namespace GPXManager.entities
         public string GPXFileName { get; set; }
 
         public string Notes { get; set; }
+
+        public string XML { get; set; }
 
         [ReadOnly(true)]
         public string DeviceID { get; set; }
@@ -115,11 +126,21 @@ namespace GPXManager.entities
         {
             return $"{TripID.ToString()} ({GPS.DeviceName})";
         }
+
+        public DateTime MonthYear
+        {
+            get
+            {
+                return new DateTime(DateTimeDeparture.Year, DateTimeDeparture.Month, 1);
+            }
+        }
         public int TripID { get; set; }
         public string VesselName { get; set; }
 
         [ReadOnly(true)]
         public GPS GPS { get; set; }
+
+        public string XML { get; set; }
 
         public int WaypointCount
         {
@@ -157,5 +178,7 @@ namespace GPXManager.entities
                 }
             }
         }
+
+        public DateTime DateAdded { get; set; }
     }
 }

@@ -84,7 +84,7 @@ namespace GPXManager.entities
                 _tripCount = value;
             }
         }
-
+        public string XML { get; set; }
         public List<WaypointLocalTime> NamedWaypointsInLocalTime { get; internal set; } = new List<WaypointLocalTime>();
 
         public bool IsArchived
@@ -146,7 +146,8 @@ namespace GPXManager.entities
 
             if (deviceGPX != null)
             {
-                var waypoints = Entities.WaypointViewModel.ReadWaypointFromDeviceGPX(deviceGPX);
+                //var waypoints = Entities.WaypointViewModel.ReadWaypointFromDeviceGPX(deviceGPX);
+                var waypoints = Entities.WaypointViewModel.ReadWaypointsFromFile(deviceGPX,true);
                 if(waypoints==null)
                 {
                     WaypointCount = 0;

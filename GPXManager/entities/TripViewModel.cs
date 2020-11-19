@@ -126,6 +126,15 @@ namespace GPXManager.entities
             get { return TripCollection.Count; }
         }
 
+        public Dictionary<DateTime, List<Trip>> TripArchivesByMonth(GPS gps)
+        {
+            return TripCollection
+                .Where(g => g.GPS.DeviceID == gps.DeviceID)
+                .OrderBy(m => m.DateTimeDeparture)
+                .GroupBy(o => o.MonthYear)
+                .ToDictionary(g => g.Key, g => g.ToList());
+        }
+
         public void MarkAllNotShownInMap()
         {
             foreach(var item in TripCollection.Where(t => t.ShownInMap))
@@ -139,6 +148,7 @@ namespace GPXManager.entities
             if (trip == null)
                 throw new ArgumentNullException("Error: The argument is Null");
 
+            trip.DateAdded = DateTime.Now;
             TripCollection.Add(trip);
 
             return _operationSucceeded;

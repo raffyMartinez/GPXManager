@@ -56,6 +56,8 @@ namespace GPXManager.entities.mapping
 
         public event EventHandler LayerRefreshNeeded;
 
+        public event EventHandler AllSelectionsCleared;
+
         public delegate void LayerPositionChangedHandler(MapLayersHandler s);                 //an event that is raised when a layer positions changed
         public event LayerReadHandler LayerPositionChanged;
 
@@ -345,6 +347,8 @@ namespace GPXManager.entities.mapping
                 }
             }
             _axmap.Redraw();
+
+            AllSelectionsCleared?.Invoke(this, EventArgs.Empty);
         }
 
         public MapLayer CurrentMapLayer
@@ -672,6 +676,7 @@ namespace GPXManager.entities.mapping
             {
                 LayerEventArg lp = new LayerEventArg(layerHandle);
                 lp.LayerVisible = visible;
+                lp.LayerName = layerName;
                 OnLayerVisibilityChanged(this, lp);
             }
             _axmap.Redraw();

@@ -76,14 +76,19 @@ namespace GPXManager.entities
             }
         }
 
-        public static bool SetSettings(string computerGPXFolder, string deviceGPXFolder, string backendPath, int hoursGMTOffset)
+        public static bool SetSettings(string computerGPXFolder, string deviceGPXFolder, 
+              string backendPath, int hoursGMTOffset, string bingAPIKey, int countLatestTrip,
+              int countLatestGPXFiles)
         {
             Settings = new Settings
             {
                 MDBPath = backendPath,
                 ComputerGPXFolder = computerGPXFolder,
                 DeviceGPXFolder = deviceGPXFolder,
-                HoursOffsetGMT = hoursGMTOffset
+                HoursOffsetGMT = hoursGMTOffset,
+                BingAPIKey = bingAPIKey,
+                LatestTripCount = countLatestTrip,
+                LatestGPXFileCount = countLatestGPXFiles
             };
 
             SaveGlobalSettings();

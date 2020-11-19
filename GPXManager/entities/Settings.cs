@@ -10,6 +10,40 @@ namespace GPXManager.entities
 {
     public class Settings
     {
+        private int? _latestTripCount = null;
+        private int? _latestGPXFileCount = null;
+
+        public int? LatestGPXFileCount
+        {
+            get
+            {
+                if (_latestGPXFileCount == null)
+                {
+                    return 5;
+                }
+                else
+                {
+                    return _latestGPXFileCount;
+                }
+            }
+            set { _latestGPXFileCount = value; }
+        }
+        public int? LatestTripCount 
+        { 
+            get
+            {
+                if(_latestTripCount==null)
+                {
+                    return 5;
+                }
+                else
+                {
+                    return _latestTripCount;
+                }
+            }
+            set { _latestTripCount = value; } 
+        }
+        public string BingAPIKey { get; set; }
         public string MDBPath { get; set; }
         public string ComputerGPXFolder { get; set; }
         public string DeviceGPXFolder { get; set; }

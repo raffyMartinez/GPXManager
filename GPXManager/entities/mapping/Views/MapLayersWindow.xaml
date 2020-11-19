@@ -47,12 +47,16 @@
                 </Button>
             </ToolBar>
         </ToolBarTray>
+
         <DataGrid x:Name="dataGridLayers" Grid.Row="2"  CanUserAddRows="False" ItemsSource="{Binding}" 
                   HeadersVisibility="None" GridLinesVisibility="None" 
                   Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" 
                   dd:DragDrop.IsDragSource="True" 
                   dd:DragDrop.IsDropTarget="True"
-                  dd:DragDrop.DropHandler="{Binding}"
-                  />
+                  dd:DragDrop.DropHandler="{Binding}">
+
+        </DataGrid>
+
     </Grid>
+
 </Window>

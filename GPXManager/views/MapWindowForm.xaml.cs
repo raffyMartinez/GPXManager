@@ -34,7 +34,6 @@ namespace GPXManager.views
 
     public partial class MapWindowForm : Window
     {
-
         private static MapWindowForm _instance;
 
         public AxMapWinGIS.AxMap MapControl { get; set; }
@@ -112,8 +111,22 @@ namespace GPXManager.views
 
             MapInterActionHandler.ShapesSelected += OnMapShapeSelected;
             MapLayersHandler.CurrentLayer += OnMapCurrentLayer;
+            MapLayersHandler.OnLayerVisibilityChanged += MapLayersHandler_OnLayerVisibilityChanged;
             GPXMappingManager.MapInteractionHandler = MapInterActionHandler;
             TripMappingManager.MapInteractionHandler = MapInterActionHandler;
+            
+
+
+        }
+
+        private void MapLayersHandler_OnLayerVisibilityChanged(MapLayersHandler s, LayerEventArg e)
+        {
+            switch(e.LayerName)
+            {
+                case "Coastline":
+                    menuMapCoastlineVisible.IsChecked = e.LayerVisible;
+                    break;
+            }
         }
 
         private void OnMapCurrentLayer(MapLayersHandler s, LayerEventArg e)
@@ -194,6 +207,8 @@ namespace GPXManager.views
         {
             switch (((WindowMenuItem)sender).Name)
             {
+                case "menuEdit":
+                    break;
                 case "menuAddLayerBoundaryLGU":
                     string feedfBack = "";
                     MapWindowManager.AddLGUBoundary(out feedfBack);
@@ -235,13 +250,15 @@ namespace GPXManager.views
             switch (menuItem.Name)
             {
                 case "menuMapCoastlineVisible":
+
                     var coast = MapLayersHandler.get_MapLayer("Coastline");
-                    if(coast==null)
+                    if (coast == null)
                     {
                         MapWindowManager.LoadCoastline(MapWindowManager.CoastLineFile);
                         coast = MapLayersHandler.get_MapLayer("Coastline");
                     }
                     MapLayersHandler.EditLayer(coast.Handle, coast.Name, menuItem.IsChecked);
+                    
                     break;
                 case "menuMapTilesVisible":
                     if (menuItem.IsChecked)
@@ -382,6 +399,7 @@ namespace GPXManager.views
             MapControl.CursorMode = cursorMode;
             MapControl.MapCursor = cursor;
         }
+
 
     }
 }

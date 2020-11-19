@@ -34,67 +34,76 @@ namespace GPXManager.views
 
         private void OnWindowLoaded(object sender, RoutedEventArgs e)
         {
-
-
-            if (GPXXML != null && GPXXML.Length > 0)
+            rowFile.Height = new GridLength(0);
+            rowDetail.Height = new GridLength(0);
+            if (ShowAsXML)
             {
-                labelFileName.Content = "Extracted track of fishing trip";
-                Track tr = new Track();
-                tr.Read(GPXXML,true);
-                var stats = tr.Statistics;
-                if(tr.Waypoints.Count>0)
-                {
-                    labelOfFileName.Content = "Description";
-                    labelOfTrackCount.Content = "Length";
-                    labelTrackCount.Content = stats.Length.ToString("N2")+ " km";
-                    labelGPXType.Content = "Track waypoints";
-                    dataGridNamedWaypoints.DataContext = tr.TrackPtsInLocalTine;
-                    labelWaypointCount.Content = tr.Waypoints.Count.ToString();
-                    labelWaypointLabel.Content = "Number of track pts.";
-                }
-                
+                rowFile.Height = new GridLength(1, GridUnitType.Star);
+                txtGPX.Text = PrettyXML.PrettyPrint(GPXFile.XML);
             }
             else
             {
-                labelTrackCount.Content = GPXFile.TrackCount.ToString();
-                if (GPXFile.FileInfo != null)
+                rowDetail.Height = new GridLength(1, GridUnitType.Star);
+                if (GPXXML != null && GPXXML.Length > 0)
                 {
-                    labelFileName.Content = GPXFile.FileInfo.FullName;
+                    labelFileName.Content = "Extracted track of fishing trip";
+                    Track tr = new Track();
+                    tr.Read(GPXXML, true);
+                    var stats = tr.Statistics;
+                    if (tr.Waypoints.Count > 0)
+                    {
+                        labelOfFileName.Content = "Description";
+                        labelOfTrackCount.Content = "Length";
+                        labelTrackCount.Content = stats.Length.ToString("N2") + " km";
+                        labelGPXType.Content = "Track waypoints";
+                        dataGridNamedWaypoints.DataContext = tr.TrackPtsInLocalTine;
+                        labelWaypointCount.Content = tr.Waypoints.Count.ToString();
+                        labelWaypointLabel.Content = "Number of track pts.";
+                    }
+
                 }
                 else
                 {
-                    labelFileName.Content = GPXFile.FileName;
-                }
+                    labelTrackCount.Content = GPXFile.TrackCount.ToString();
+                    if (GPXFile.FileInfo != null)
+                    {
+                        labelFileName.Content = GPXFile.FileInfo.FullName;
+                    }
+                    else
+                    {
+                        labelFileName.Content = GPXFile.FileName;
+                    }
 
-                if (GPXFile.WaypointCount > 0)
-                {
-                    labelWaypointLabel.Content = "Number of waypoints";
-                    labelWaypointCount.Content = GPXFile.WaypointCount.ToString();
-                    labelGPXType.Content = "Waypoints";
-                    dataGridNamedWaypoints.DataContext = GPXFile.NamedWaypointsInLocalTime;
-                }
-                else
-                {
-                    //foreach(var item in GPXFile.w)
-                    labelGPXType.Content = "Track waypoints";
-                    dataGridNamedWaypoints.DataContext = GPXFile.TrackWaypoinsInLocalTime;
-                    labelWaypointCount.Content = GPXFile.TrackPointsCount.ToString();
-                    labelWaypointLabel.Content = "Number of track pts.";
+                    if (GPXFile.WaypointCount > 0)
+                    {
+                        labelWaypointLabel.Content = "Number of waypoints";
+                        labelWaypointCount.Content = GPXFile.WaypointCount.ToString();
+                        labelGPXType.Content = "Waypoints";
+                        dataGridNamedWaypoints.DataContext = GPXFile.NamedWaypointsInLocalTime;
+                    }
+                    else
+                    {
+                        //foreach(var item in GPXFile.w)
+                        labelGPXType.Content = "Track waypoints";
+                        dataGridNamedWaypoints.DataContext = GPXFile.TrackWaypoinsInLocalTime;
+                        labelWaypointCount.Content = GPXFile.TrackPointsCount.ToString();
+                        labelWaypointLabel.Content = "Number of track pts.";
 
+                    }
                 }
+                dataGridNamedWaypoints.Columns.Add(new DataGridTextColumn { Header = "Name", Binding = new Binding("Name") });
+                dataGridNamedWaypoints.Columns.Add(new DataGridTextColumn { Header = "Longitude", Binding = new Binding("Longitude") });
+                dataGridNamedWaypoints.Columns.Add(new DataGridTextColumn { Header = "Latitude", Binding = new Binding("Latitude") });
+                //dataGridNamedWaypoints.Columns.Add(new DataGridTextColumn { Header = "Time", Binding = new Binding("Time") });
+
+                var col = new DataGridTextColumn()
+                {
+                    Binding = new Binding("Time"),
+                    Header = "Time stamp"
+                };
+                col.Binding.StringFormat = "MMM-dd-yyyy HH:mm";
+                dataGridNamedWaypoints.Columns.Add(col);
             }
-            dataGridNamedWaypoints.Columns.Add(new DataGridTextColumn { Header = "Name", Binding = new Binding("Name") });
-            dataGridNamedWaypoints.Columns.Add(new DataGridTextColumn { Header = "Longitude", Binding = new Binding("Longitude") });
-            dataGridNamedWaypoints.Columns.Add(new DataGridTextColumn { Header = "Latitude", Binding = new Binding("Latitude") });
-            //dataGridNamedWaypoints.Columns.Add(new DataGridTextColumn { Header = "Time", Binding = new Binding("Time") });
-            
-            var col = new DataGridTextColumn()
-            {
-                Binding = new Binding("Time"),
-                Header = "Time stamp"
-            };
-            col.Binding.StringFormat = "MMM-dd-yyyy HH:mm";
-            dataGridNamedWaypoints.Columns.Add(col);
         }
 
         private void OnWindowClosing(object sender, CancelEventArgs e)
@@ -110,6 +119,7 @@ namespace GPXManager.views
 
         }
 
+        public bool ShowAsXML { get; set; }
         protected override void OnSourceInitialized(EventArgs e)
         {
             base.OnSourceInitialized(e);
@@ -124,6 +134,12 @@ namespace GPXManager.views
                     Close();
                     break;
             }
+        }
+
+        private void OnTextDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            NotepadHelper.ShowMessage(txtGPX.Text, GPXFile.FileName);
+
         }
     }
 }

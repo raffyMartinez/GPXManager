@@ -50,10 +50,16 @@ namespace GPXManager.views
                 textBoxGPXFolder.Text = Global.Settings.ComputerGPXFolder;
                 textBoxGPXFolderDevice.Text = Global.Settings.DeviceGPXFolder;
                 textBoxHoursOffsetGMT.Text = Global.Settings.HoursOffsetGMT.ToString();
+                textBoxBingAPIKey.Text = Global.Settings.BingAPIKey;
+                textLatestTripCount.Text = Global.Settings.LatestTripCount.ToString();
+                textLatestGPXFileCount.Text = Global.Settings.LatestGPXFileCount.ToString();
+                
             }
             else
             {
                 textBoxHoursOffsetGMT.Text = "8";
+                textLatestTripCount.Text = "5";
+                textLatestGPXFileCount.Text = "5";
             }
         }
 
@@ -75,7 +81,15 @@ namespace GPXManager.views
             switch(((Button)sender).Name)
             {
                 case "buttonOk":
-                    DialogResult =  Validate() && Global.SetSettings(textBoxGPXFolder.Text, textBoxGPXFolderDevice.Text, textBoxBackendPath.Text, int.Parse(textBoxHoursOffsetGMT.Text));
+                    DialogResult =  Validate() && Global.SetSettings(
+                        textBoxGPXFolder.Text, 
+                        textBoxGPXFolderDevice.Text, 
+                        textBoxBackendPath.Text, 
+                        int.Parse(textBoxHoursOffsetGMT.Text),
+                        textBoxBingAPIKey.Text,
+                        int.Parse(textLatestTripCount.Text),
+                        int.Parse(textLatestGPXFileCount.Text)
+                        );
                     if(!Validate())
                     {
                         MessageBox.Show("All fields should be answered with the expected values", "Validation error",MessageBoxButton.OK, MessageBoxImage.Information);

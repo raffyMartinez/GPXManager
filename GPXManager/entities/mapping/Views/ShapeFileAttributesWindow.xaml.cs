@@ -31,7 +31,20 @@ namespace GPXManager.entities.mapping.Views
             Loaded += ShapeFileAttributesWindow_Loaded;
             _mapInterActionHandler = mapInterActionHandler;
             _mapInterActionHandler.ShapesSelected += _mapInterActionHandler_ShapesSelected;
+            _mapInterActionHandler.SelectionCleared += _mapInterActionHandler_SelectionCleared;
             _mapInterActionHandler.MapLayersHandler.CurrentLayer += MapLayersHandler_CurrentLayer;
+            _mapInterActionHandler.MapLayersHandler.AllSelectionsCleared += MapLayersHandler_AllSelectionsCleared;
+
+        }
+
+        private void _mapInterActionHandler_SelectionCleared(object sender, EventArgs e)
+        {
+            dataGridAttributes.SelectedItems.Clear();
+        }
+
+        private void MapLayersHandler_AllSelectionsCleared(object sender, EventArgs e)
+        {
+            dataGridAttributes.SelectedItems.Clear();
         }
 
         private void ShapeFileAttributesWindow_Loaded(object sender, RoutedEventArgs e)
@@ -61,8 +74,12 @@ namespace GPXManager.entities.mapping.Views
         {
             _instance = null;
             _mapInterActionHandler.ShapesSelected -= _mapInterActionHandler_ShapesSelected;
+            _mapInterActionHandler.SelectionCleared -= _mapInterActionHandler_SelectionCleared;
             _mapInterActionHandler.MapLayersHandler.CurrentLayer -= MapLayersHandler_CurrentLayer;
+            _mapInterActionHandler.MapLayersHandler.AllSelectionsCleared -= MapLayersHandler_AllSelectionsCleared;
             _mapInterActionHandler = null;
+
+
         }
 
         protected override void OnSourceInitialized(EventArgs e)
