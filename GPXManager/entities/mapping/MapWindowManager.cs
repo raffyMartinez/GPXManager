@@ -432,6 +432,28 @@ namespace GPXManager.entities.mapping
             MapLayersHandler.RemoveLayerByKey(key);
         }
 
+
+        public static int MapWaypointList(List<WaypointLocalTime> wpts, out List<int>handles)
+        {
+            handles = new List<int>();
+            if(wpts.Count>0)
+            {
+                var sf = ShapefileFactory.PointsFromWaypointList(wpts,out handles);
+                MapLayersHandler.AddLayer(sf, "GPX waypoints", uniqueLayer: true, layerKey: sf.Key, rejectIfExisting: true);
+            }
+            return MapLayersHandler.CurrentMapLayer.Handle;
+        }
+        
+        public static int MapTrackGPX(GPXFile gpxfile, out List<int>handles)
+        {
+            handles = new List<int>();
+            if(gpxfile.Tracks.Count>0)
+            {
+                var sf = ShapefileFactory.TrackFromGPX(gpxfile, out handles);
+                MapLayersHandler.AddLayer(sf, "GPX track", uniqueLayer: true, layerKey: sf.Key, rejectIfExisting: true);
+            }
+            return MapLayersHandler.CurrentMapLayer.Handle;
+        }
         public static int MapTrip(Trip trip, out int shpIndex, out List<int> handles, bool showInMap = true)
         {
             shpIndex = -1;

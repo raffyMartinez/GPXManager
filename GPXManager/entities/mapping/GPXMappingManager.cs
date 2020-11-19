@@ -26,7 +26,11 @@ namespace GPXManager.entities.mapping
         }
 
 
-
+        public static void RemoveGPXLayersFromMap()
+        {
+            _mapInterActionHandler.MapLayersHandler.RemoveLayerByKey("gpxfile_track");
+            _mapInterActionHandler.MapLayersHandler.RemoveLayerByKey("gpx_waypoints");
+        }
 
         public static void Cleanup()
         {

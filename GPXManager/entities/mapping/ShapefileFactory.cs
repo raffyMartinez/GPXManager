@@ -36,6 +36,57 @@ namespace GPXManager.entities.mapping
             return null;
         }
 
+        public static Shapefile PointsFromWaypointList(List<WaypointLocalTime> wpts, out List<int>handles)
+        {
+            handles = new List<int>();
+            Shapefile sf;
+            if (wpts.Count > 0)
+            {
+                if (TripMappingManager.WaypointsShapefile == null || TripMappingManager.WaypointsShapefile.NumFields == 0)
+                {
+                    sf = new Shapefile();
+                    if (sf.CreateNewWithShapeID("", ShpfileType.SHP_POINT))
+                    {
+                        sf.EditAddField("Name", FieldType.STRING_FIELD, 1, 1);
+                        sf.EditAddField("TimeStamp", FieldType.DATE_FIELD, 1, 1);
+                        sf.Key = "gpx_waypoints";
+                        sf.GeoProjection = globalMapping.GeoProjection;
+                        TripMappingManager.WaypointsShapefile = sf;
+                    }
+                }
+                else
+                {
+                    sf = TripMappingManager.WaypointsShapefile;
+                }
+
+                foreach (var pt in wpts)
+                {
+                    var shp = new Shape();
+                    if (shp.Create(ShpfileType.SHP_POINT))
+                    {
+                        if (shp.AddPoint(pt.Longitude, pt.Latitude) >= 0)
+                        {
+                            var shpIndex = sf.EditAddShape(shp);
+                            if (shpIndex >= 0)
+                            {
+                                sf.EditCellValue(sf.FieldIndexByName["Name"], shpIndex, pt.Name);
+                                sf.EditCellValue(sf.FieldIndexByName["TimeStamp"], shpIndex, pt.Time);
+                                handles.Add(shpIndex);
+                            }
+                        }
+                    }
+                }
+                sf.DefaultDrawingOptions.PointShape = tkPointShapeType.ptShapeCircle;
+                sf.DefaultDrawingOptions.PointSize = 12;
+                sf.DefaultDrawingOptions.FillColor = _mapWinGISUtils.ColorByName(tkMapColor.Red);
+                return sf;
+
+            }
+            else
+            {
+                return null;
+            }
+        }
         public static Shapefile PointsFromWayPointList(List<TripWaypoint>wpts, out List<int>handles, string gpsName, string fileName)
         {
             handles = new List<int>();
@@ -157,6 +208,8 @@ namespace GPXManager.entities.mapping
                         sf.EditAddField("GPS", FieldType.STRING_FIELD, 1, 1);
                         sf.EditAddField("Filename", FieldType.STRING_FIELD, 1, 1);
                         sf.EditAddField("Length", FieldType.DOUBLE_FIELD, 1, 1);
+                        sf.EditAddField("DateStart", FieldType.DATE_FIELD, 1, 1);
+                        sf.EditAddField("DateEnd", FieldType.DATE_FIELD, 1, 1);
                         sf.Key = "gpxfile_track";
                         sf.GeoProjection = GPXManager.entities.mapping.globalMapping.GeoProjection;
                         GPXMappingManager.TrackShapefile = sf;
@@ -180,6 +233,8 @@ namespace GPXManager.entities.mapping
                 sf.EditCellValue(sf.FieldIndexByName["GPS"], shpIndex, gpxFile.GPS.DeviceName);
                 sf.EditCellValue(sf.FieldIndexByName["FileName"], shpIndex, gpxFile.FileName);
                 sf.EditCellValue(sf.FieldIndexByName["Length"], shpIndex, gpxFile.TrackLength);
+                sf.EditCellValue(sf.FieldIndexByName["DateStart"], shpIndex, gpxFile.DateRangeStart);
+                sf.EditCellValue(sf.FieldIndexByName["DateEnd"], shpIndex, gpxFile.DateRangeEnd);
 
                 return sf;
             }

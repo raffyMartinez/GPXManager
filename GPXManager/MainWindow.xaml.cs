@@ -1688,22 +1688,56 @@ namespace GPXManager
 
                         MapWindowManager.MapLayersHandler?.ClearAllSelections();
 
-
-
-                        if (_gpxFile.ShownInMap)
+                        if (MapWindowManager.MapWindowForm != null )
                         {
+                            GPXMappingManager.RemoveGPXLayersFromMap();
+                            
+                            List<int> ptHandles = new List<int>();
                             if (_isTrackGPX)
                             {
-                                MapWindowManager.MapLayersHandler.set_MapLayer(MapWindowManager.GPXTracksLayer.Handle);
+                                List<int> handles = new List<int>();
+                                MapWindowManager.MapTrackGPX(_gpxFile, out handles);
+                                var waypoints = Entities.DeviceGPXViewModel.GetWaypointsMatch(_gpxFile);
+
+                                if (waypoints.Count > 0)
+                                {
+                                    
+                                    MapWindowManager.MapWaypointList(waypoints, out ptHandles);
+                                }
                             }
                             else
                             {
-                                MapWindowManager.MapLayersHandler.set_MapLayer(MapWindowManager.GPXWaypointsLayer.Handle);
+                                var waypoints = Entities.DeviceGPXViewModel.GetWaypoints(_gpxFile);
+                                if (waypoints.Count > 0)
+                                {
+                                    MapWindowManager.MapWaypointList(waypoints, out ptHandles);
+                                }
                             }
 
-                            foreach (int handle in _gpxFile.ShapeIndexes)
+                            MapWindowManager.MapControl.Redraw();
+                            DispatcherTimer timer = new DispatcherTimer();
+                            timer.Interval = TimeSpan.FromTicks(1);
+                            timer.Tick += timer_Tick;
+                            timer.Start();
+                        }
+                        else
+                        {
+
+                            if (_gpxFile.ShownInMap)
                             {
-                                ((Shapefile)MapWindowManager.MapLayersHandler.CurrentMapLayer.LayerObject).ShapeSelected[handle] = true;
+                                if (_isTrackGPX)
+                                {
+                                    MapWindowManager.MapLayersHandler.set_MapLayer(MapWindowManager.GPXTracksLayer.Handle);
+                                }
+                                else
+                                {
+                                    MapWindowManager.MapLayersHandler.set_MapLayer(MapWindowManager.GPXWaypointsLayer.Handle);
+                                }
+
+                                foreach (int handle in _gpxFile.ShapeIndexes)
+                                {
+                                    ((Shapefile)MapWindowManager.MapLayersHandler.CurrentMapLayer.LayerObject).ShapeSelected[handle] = true;
+                                }
                             }
                         }
                         

@@ -343,21 +343,6 @@ namespace GPXManager.views
                         sfw.Show();
                     }
                     MapWindowManager.ShapeFileAttributesWindow = sfw;
-                    //if (MapLayersHandler.CountLayersWithSelection==1)
-                    //{
-                    //if (MapWindowManager.MapLayersHandler.CurrentMapLayer != null && MapWindowManager.MapLayersHandler.CurrentMapLayer.LayerObject is Shapefile)
-                    //{
-                    //    var saw = new ShapeFileAttributesWindow(MapInterActionHandler);
-                    //    saw.ShapeFile = MapWindowManager.MapLayersHandler.CurrentMapLayer.LayerObject as Shapefile;
-                    //    saw.ShowShapeFileAttribute();
-                    //    saw.Owner = this;
-                    //    saw.Show();
-                    //}
-                    //}
-                    //else
-                    //{
-                    //    System.Windows.MessageBox.Show("Map must have only one layer with selected features","GPX Manager",MessageBoxButton.OK, MessageBoxImage.Information);
-                    //}
                     break;
                 case "buttonGears":
                     ToBeImplemented("mapping options");

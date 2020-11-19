@@ -125,9 +125,9 @@ namespace GPXManager.entities.mapping.Views
 
                 int columnIndex = columnHeader.Column.DisplayIndex;
 
-                Title = string.Format(
-                    "Header clicked [{0}] = {1}",
-                    columnIndex, boundPropertyName);
+                //Title = string.Format(
+                //    "Header clicked [{0}] = {1}",
+                //    columnIndex, boundPropertyName);
             }
             else if (dep is DataGridCell)
             {
@@ -149,13 +149,9 @@ namespace GPXManager.entities.mapping.Views
                 int columnIndex = cell.Column.DisplayIndex;
                 int rowIndex = FindRowIndex(row);
 
-                Title = string.Format(
-                    "Cell clicked [{0}, {1}] = {2}",
-                    rowIndex, columnIndex, value.ToString());
 
                 if(columnIndex==0)
                 {
-                    //MapLayer ly = dataGridLayers.Items[rowIndex] as MapLayer;
                     MapLayersHandler.EditLayer(CurrentLayer.Handle, CurrentLayer.Name, !(bool)value);
 
 

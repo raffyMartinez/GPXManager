@@ -68,6 +68,30 @@ namespace GPXManager.entities
             ArchivedGPXFiles[gps].Add(gpxFile);
         }
         
+        public List<WaypointLocalTime>GetWaypoints(GPXFile wayppointFile)
+        {
+            if(wayppointFile.TrackCount==0 && wayppointFile.NamedWaypointsInLocalTime.Count>0)
+            {
+                return wayppointFile.NamedWaypointsInLocalTime;
+            }
+            return null;
+        }
+        public List<WaypointLocalTime>GetWaypointsMatch(GPXFile trackFile)
+        {
+            var thisList = new List<WaypointLocalTime>();
+            foreach(var g in  ArchivedGPXFiles[trackFile.GPS].Where(t=>t.GPXFileType==GPXFileType.Waypoint))
+            {
+                foreach(var wpt in g.NamedWaypointsInLocalTime)
+                {
+                    if(wpt.Time >= trackFile.DateRangeStart && wpt.Time <= trackFile.DateRangeEnd)
+                    {
+                        thisList.Add(wpt);
+                    }
+                }
+            }
+
+            return thisList;
+        }
 
         public DeviceGPX GetDeviceGPX(int id)
         {
