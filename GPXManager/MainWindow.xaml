@@ -21,6 +21,10 @@
                     <MenuItem Header="GPS" x:Name="menuSaveGPS" Click="OnMenuClick"/>
                     <MenuItem Header="Trips" x:Name="menuSaveTrips" Click="OnMenuClick"/>
                 </MenuItem>
+                <MenuItem Header="Import" Visibility="Collapsed">
+                    <MenuItem Header="Import GPS" x:Name="menuFileImportGPS" Click="OnMenuClick" IsEnabled="False"/>
+                    <MenuItem Header="Import GPX" x:Name="menuFileImportGPX" Click="OnMenuClick" IsEnabled="False"/>
+                </MenuItem>
                 <MenuItem Header="Close" x:Name="menuCloseApp" Click="OnMenuClick" >
                     <MenuItem.Icon>
                         <Image Source="exit.png" OpacityMask="White" />
@@ -103,14 +107,21 @@
             <Border BorderThickness="1" BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}" Grid.ColumnSpan="4" Margin="0,0,0,-0.2">
                 <StackPanel>
                     <TreeView ScrollViewer.HorizontalScrollBarVisibility="Disabled" x:Name="treeDevices"  SelectedItemChanged="OnTreeViewSelectedItemChange" Background="{x:Null}" BorderBrush="{x:Null}" Foreground="{x:Null}">
-                        <TreeViewItem Header="Devices" Tag="root" Background="{x:Null}"/>
+                        <TreeViewItem Header="Devices" Tag="root" Background="{x:Null}" />
                     </TreeView>
                     <TreeView x:Name="treeCalendar" Visibility="Collapsed" SelectedItemChanged="OnTreeViewSelectedItemChange" BorderBrush="{x:Null}" Foreground="{x:Null}">
                         <TreeViewItem Header="Trip calendar" Tag="root"/>
                         <TreeViewItem Header="Trips by GPS" Tag="root"/>
                     </TreeView>
                     <TreeView x:Name="treeArchive" Visibility="Collapsed" SelectedItemChanged="OnTreeViewSelectedItemChange"  BorderBrush="{x:Null}" Foreground="{x:Null}">
-                        
+                        <!--<TreeView.Resources>
+                            <ContextMenu x:Key="Import">
+                                <MenuItem Header="Import GPS" x:Name="menuImportGPS" Click="OnMenuClick" />
+                                <MenuItem Header="Import GPX" x:Name="menuImportGPX" Click="OnMenuClick" />
+                            </ContextMenu>
+                        </TreeView.Resources>
+                        <TreeViewItem Header="Archive" Tag="root" Background="{x:Null}" ContextMenu="{StaticResource Import}" />-->
+                        <TreeViewItem Header="Archive" Tag="root" Background="{x:Null}"/>
                     </TreeView>
                 </StackPanel>
             </Border>

@@ -41,6 +41,14 @@ namespace GPXManager.entities.mapping.Views
             base.OnSourceInitialized(e);
             this.ApplyPlacement();
         }
+        public void RefreshCurrentLayer()
+        {
+            DispatcherTimer timer = new DispatcherTimer();
+            timer.Interval = TimeSpan.FromTicks(1);
+            timer.Tick += timer_Tick;
+            timer.Start();
+        }
+
 
         public MapWindowForm ParentForm { get; set; }
 
@@ -155,10 +163,7 @@ namespace GPXManager.entities.mapping.Views
                     MapLayersHandler.EditLayer(CurrentLayer.Handle, CurrentLayer.Name, !(bool)value);
 
 
-                    DispatcherTimer timer = new DispatcherTimer();
-                    timer.Interval = TimeSpan.FromTicks(1);
-                    timer.Tick += timer_Tick;
-                    timer.Start();
+                    RefreshCurrentLayer();
                     dataGridLayers.Focus();
                 }
             }
@@ -167,8 +172,9 @@ namespace GPXManager.entities.mapping.Views
 
         void timer_Tick(object sender, EventArgs e)
         {
-            SelectCurrentLayerInGrid(true);
             ((DispatcherTimer)sender).Stop();
+            SelectCurrentLayerInGrid();
+
         }
         private int FindRowIndex(DataGridRow row)
         {
@@ -314,34 +320,27 @@ namespace GPXManager.entities.mapping.Views
         {
             if (dataGridLayers.Items.Count > 0)
             {
-                //SetRowsNormalFont();
                 _gridIsClicked = false;
                 if (CurrentLayer == null)
                 {
                     CurrentLayer = MapLayersHandler.CurrentMapLayer;
                 }
 
-               // int row = 0;
                 foreach (var item in dataGridLayers.Items)
                 {
-
                     if (((MapLayer)item).Handle == CurrentLayer.Handle)
                     {
                         if (!inMouseUp)
                         {
                             dataGridLayers.SelectedItem = item;
                         }
-                       // DataGridRow r = (DataGridRow)dataGridLayers.ItemContainerGenerator.ContainerFromIndex(row);
                         DataGridRow r = (DataGridRow)dataGridLayers.ItemContainerGenerator.ContainerFromIndex(dataGridLayers.SelectedIndex);
                         if (r != null)
                         {
-                            //SetRowsNormalFont();
                             r.FontWeight = FontWeights.Bold;
                         }
-                        
                         break;
                     }
-                    //row++;
                 }
             }
             
@@ -361,8 +360,6 @@ namespace GPXManager.entities.mapping.Views
         }
         private void DataGridLayers_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            
-
             if (_gridIsClicked && dataGridLayers.SelectedItems.Count>0)
             {
                 MapLayersHandler.set_MapLayer(((MapLayer)dataGridLayers.SelectedItem).Handle);

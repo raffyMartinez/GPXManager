@@ -39,7 +39,8 @@ namespace GPXManager.entities
         }
         public void MarkAllNotShownInMap()
         {
-            foreach (var item in GPXFileCollection.Where(t => t.ShownInMap))
+            //foreach (var item in GPXFileCollection.Where(t => t.ShownInMap))
+            foreach (var item in GPXFileCollection)
             {
                 item.ShownInMap = false;
             }

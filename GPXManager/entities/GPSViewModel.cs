@@ -8,6 +8,8 @@ using System.Collections.Specialized;
 using System.Dynamic;
 using System.Windows.Media.Media3D;
 using System.IO;
+using System.Xml;
+using System.Xml.Serialization;
 
 namespace GPXManager.entities
 {
@@ -17,7 +19,99 @@ namespace GPXManager.entities
         public ObservableCollection<GPS> GPSCollection { get; set; }
         private GPSRepository GPSes { get; set; }
 
+        //public int ImportGPS(string xmlFile)
+        //{
+        //    int importedCount = 0;
+        //    XmlSerializer myDeserializer = new XmlSerializer(typeof(GPS));
+        //    FileStream myFileStream = new FileStream(xmlFile, FileMode.Open);
+        //    var gpsList= (List<GPS>)myDeserializer.Deserialize(myFileStream);
+            
+        //    foreach(var gps in gpsList)
+        //    {
+        //        if(GetGPSEx(gps.DeviceID)==null && AddRecordToRepo(gps))
+        //        {
+        //            importedCount++;
+        //        }
+        //    }
 
+        //    myFileStream.Close();
+        //    return importedCount;
+            
+        //}
+
+        
+        public int ImportGPS(string xmlFile, out string message)
+        {
+            GPS gps = null;
+            int importedCount = 0;
+            string xml = File.OpenText(xmlFile).ReadToEnd();
+
+            message = Global.IsValidXMLFile(xmlFile);
+            if(message !="Valid XML")
+            {
+                return 0;
+            }
+
+            using (XmlReader reader = XmlReader.Create(new StringReader(xml)))
+            {
+                while (reader.Read())
+                {
+                    if (reader.IsStartElement())
+                    {
+                        
+
+                        if (reader.Name == "GPS")
+                        {
+                            gps = new GPS();
+                            gps.Folder = "";
+                        }
+
+                        switch (reader.Name)
+                        {
+                            case "DeviceID":
+                                gps.DeviceID = XMLValue(reader);
+                                break;
+                            case "DeviceName":
+                                gps.DeviceName = XMLValue(reader);
+                                break;
+                            case "Code":
+                                gps.Code = XMLValue(reader);
+                                break;
+                            case "Brand":
+                                gps.Brand = XMLValue(reader);
+                                break;
+                            case "Model":
+                                gps.Model = XMLValue(reader);
+                                break;
+                            case "Folder":
+                                gps.Folder = XMLValue(reader);
+                                break;
+                        }
+                            
+                        if (gps!=null && 
+                            gps.Folder.Length>0 &&  
+                            GetGPSEx(gps.DeviceID)==null)
+                        {
+                            var validationResult = ValidateGPS(gps, isNew:true,fromImport:true);
+                            if (validationResult.ErrorMessage.Length == 0 && AddRecordToRepo(gps))
+                            {
+                                importedCount++;
+                                gps = null;
+                            }
+                        }
+                        
+                        
+                    }
+                }
+            }
+            return importedCount;
+        }
+
+        private string XMLValue(XmlReader reader)
+        {
+            reader.Read();
+            return reader.Value;
+        }
         public void Serialize(string fileName)
         {
             SerializeGPS serializeGPS = new SerializeGPS { GPSList = GPSCollection.ToList() };
@@ -133,6 +227,13 @@ namespace GPXManager.entities
             }
             return CurrentEntity;
         }
+
+        public GPS GetGPSByName(string deviceName)
+        {
+            CurrentEntity = GPSCollection.FirstOrDefault(n => n.DeviceName == deviceName);
+            return CurrentEntity;
+
+        }
         public GPS GetGPS(string code)
         {
             CurrentEntity = GPSCollection.FirstOrDefault(n => n.Code == code);
@@ -180,11 +281,13 @@ namespace GPXManager.entities
             get { return GPSCollection.Count; }
         }
 
-        public void AddRecordToRepo(GPS gps)
+        public bool AddRecordToRepo(GPS gps)
         {
+            int oldCount = GPSCollection.Count;
             if (gps == null)
                 throw new ArgumentNullException("Error: The argument is Null");
             GPSCollection.Add(gps);
+            return GPSCollection.Count > oldCount;
         }
 
         public void UpdateRecordInRepo(GPS gps)
@@ -220,7 +323,8 @@ namespace GPXManager.entities
                 index++;
             }
         }
-        public EntityValidationResult ValidateGPS(GPS gps, bool isNew, string oldAssignedName, string oldCode)
+        public EntityValidationResult ValidateGPS(GPS gps, bool isNew, 
+            string oldAssignedName="", string oldCode="", bool fromImport=false)
         {
             EntityValidationResult evr = new EntityValidationResult();
 
@@ -249,7 +353,7 @@ namespace GPXManager.entities
                 evr.AddMessage("Folder cannot be empty");
             }
 
-            if (!Directory.Exists($"{gps.Device.Disks[0].Caption}\\{gps.Folder}"))
+            if (!fromImport && !Directory.Exists($"{gps.Device.Disks[0].Caption}\\{gps.Folder}"))
             {
                 evr.AddMessage("GPX folder does not exist");
             }

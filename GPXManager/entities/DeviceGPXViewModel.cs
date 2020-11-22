@@ -12,7 +12,8 @@ namespace GPXManager.entities
 {
     public class DeviceGPXViewModel
     {
-        private bool success;
+        private bool _success;
+        private int _count;
         public ObservableCollection<DeviceGPX> DeviceGPXCollection { get; set; }
         private DeviceGPXRepository DeviceWaypointGPXes{ get; set; }
 
@@ -26,11 +27,102 @@ namespace GPXManager.entities
             ConvertDeviceGPXInArchiveToGPXFile();
         }
 
+        public int ImportGPX(string folder, GPS in_gps = null, bool first=false)
+        {
+            if(first)
+            {
+                _count = 0;
+            }
+            GPS gps = null;
+            GPS current_gps = null; 
+            var files = Directory.GetFiles(folder).Select(s => new FileInfo(s));
+            if (files.Any())
+            {
+                foreach(var file in files)
+                {
+                    if(file.Extension.ToLower()==".gpx")
+                    {
+                        var folderName = Path.GetFileName(folder);
+
+                        gps = Entities.GPSViewModel.GetGPSByName(folderName);
+
+                        if (gps!=null)
+                        {
+                            current_gps = gps;    
+                        }
+                        else if(gps==null && in_gps!=null)
+                        {
+                            current_gps = in_gps;
+                        }
+
+                        if (current_gps != null)
+                        {
+                            GPXFile g = new GPXFile(file);
+                            g.GPS = current_gps;
+                            g.ComputeStats();
+                            DeviceGPX d = new DeviceGPX
+                            {
+                                Filename = file.Name,
+                                GPS = current_gps,
+                                GPX = g.XML,
+                                GPXType = g.GPXFileType == GPXFileType.Track ? "track" : "waypoint",
+                                RowID = NextRecordNumber,
+                                MD5 = CreateMD5(g.XML),
+                                TimeRangeStart = g.DateRangeStart,
+                                TimeRangeEnd = g.DateRangeEnd
+                            };
+
+                            string fileProcessed = $@"{current_gps.DeviceName}:{file.FullName}";
+
+                            DeviceGPX saved = GetDeviceGPX(d);
+                            if(saved==null)
+                            {
+                                if(AddRecordToRepo(d))
+                                {
+                                    _count++;
+                                    fileProcessed += "  (ADDED)";
+                                }
+                            }
+                            else
+                            {
+                                if(saved.MD5!=d.MD5 && d.TimeRangeEnd > saved.TimeRangeEnd)
+                                {
+                                    UpdateRecordInRepo(d);
+                                    fileProcessed += " (MODIFIED ADDED)";
+                                }
+                                else
+                                {
+                                    fileProcessed += "  (DUPLICATE)";
+                                }
+                            }
+                            Console.WriteLine(fileProcessed);
+                        }
+                    }
+                }
+            }
+
+            foreach(var dir in Directory.GetDirectories(folder))
+            {
+                ImportGPX(dir, current_gps);
+            }
+            return _count;
+        }
+        
         public void RefreshArchivedGPXCollection(GPS gps)
         {
             ConvertDeviceGPXInArchiveToGPXFile(gps); ;
         }
 
+        public void MarkAllNotShownInMap()
+        {
+            foreach(GPS gps in ArchivedGPXFiles.Keys)
+            {
+                foreach(GPXFile file in ArchivedGPXFiles[gps])
+                {
+                    file.ShownInMap = false;
+                }
+            }
+        }
         private void ConvertDeviceGPXInArchiveToGPXFile(GPS gps = null)
         {
             if (gps == null)
@@ -76,8 +168,9 @@ namespace GPXManager.entities
             }
             return null;
         }
-        public List<WaypointLocalTime>GetWaypointsMatch(GPXFile trackFile)
+        public List<WaypointLocalTime>GetWaypointsMatch(GPXFile trackFile, out List<GPXFile> gpxFiles)
         {
+            gpxFiles = new List<GPXFile>();
             var thisList = new List<WaypointLocalTime>();
             foreach(var g in  ArchivedGPXFiles[trackFile.GPS].Where(t=>t.GPXFileType==GPXFileType.Waypoint))
             {
@@ -86,6 +179,10 @@ namespace GPXManager.entities
                     if(wpt.Time >= trackFile.DateRangeStart && wpt.Time <= trackFile.DateRangeEnd)
                     {
                         thisList.Add(wpt);
+                        if(!gpxFiles.Contains(g))
+                        {
+                            gpxFiles.Add(g);
+                        }
                     }
                 }
             }
@@ -98,6 +195,14 @@ namespace GPXManager.entities
             return DeviceGPXCollection.Where(t => t.RowID == id).FirstOrDefault();
         }
 
+        public DeviceGPX GetDeviceGPX (DeviceGPX deviceGPX)
+        {
+            return DeviceGPXCollection
+                .Where(t => t.GPS.DeviceID == deviceGPX.GPS.DeviceID)
+                .Where(t => t.Filename == deviceGPX.Filename)
+                .FirstOrDefault();
+        }
+        
         public DeviceGPX GetDeviceGPX(GPS gps, string fileName)
         {
             var g =  DeviceGPXCollection
@@ -149,7 +254,7 @@ namespace GPXManager.entities
         public DeviceGPX CurrentEntity { get; set; }
         private void DeviceWptGPXCollection_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            success = false;
+            _success = false;
             switch (e.Action)
             {
                 case NotifyCollectionChangedAction.Add:
@@ -159,7 +264,7 @@ namespace GPXManager.entities
                         if (DeviceWaypointGPXes.Add(newWPTGPX))
                         {
                             CurrentEntity = newWPTGPX;
-                            success = true;
+                            _success = true;
                         }
                     }
                     break;
@@ -172,7 +277,7 @@ namespace GPXManager.entities
                 case NotifyCollectionChangedAction.Replace:
                     {
                         List<DeviceGPX> tempList = e.NewItems.OfType<DeviceGPX>().ToList();
-                        success =  DeviceWaypointGPXes.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
+                        _success =  DeviceWaypointGPXes.Update(tempList[0]);      // As the IDs are unique, only one row will be effected hence first index only
                     }
                     break;
             }
@@ -211,7 +316,7 @@ namespace GPXManager.entities
                 }
                 index++;
             }
-            return success;
+            return _success;
         }
 
         /// <summary>

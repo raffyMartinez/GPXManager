@@ -193,6 +193,53 @@ namespace GPXManager.entities.mapping
                 return null;
             }
         }
+
+        public static Shapefile GPXTrackVertices(GPXFile gpxfile,out List<int> shpIndexes)
+        {
+            shpIndexes = new List<int>();
+            Shapefile sf;
+            if(gpxfile.GPXFileType==GPXFileType.Track && gpxfile.TrackWaypoinsInLocalTime.Count>0)
+            {
+                sf = new Shapefile();
+                if(sf.CreateNewWithShapeID("",ShpfileType.SHP_POINT))
+                {
+                    sf.EditAddField("Name", FieldType.INTEGER_FIELD,1,1);
+                    sf.EditAddField("Time", FieldType.DATE_FIELD,1,1);
+                    sf.Key = "gpx_track_vertices";
+                    sf.GeoProjection = globalMapping.GeoProjection;
+                    GPXMappingManager.TrackVerticesShapefile = sf;
+                }
+            }
+            else
+            {
+                sf = GPXMappingManager.TrackVerticesShapefile;
+            }
+
+            foreach (var wlt in gpxfile.TrackWaypoinsInLocalTime)
+            {
+                var shp = new Shape();
+                if (shp.Create(ShpfileType.SHP_POINT))
+                {
+                    if (shp.AddPoint(wlt.Longitude, wlt.Latitude) >= 0)
+                    {
+                        var shpIndex = sf.EditAddShape(shp);
+                        if (shpIndex >= 0)
+                        {
+                            sf.EditCellValue(sf.FieldIndexByName["Name"], shpIndex, shpIndex+1);
+                            sf.EditCellValue(sf.FieldIndexByName["Time"], shpIndex, wlt.Time);
+                            shpIndexes.Add(shpIndex);
+                        }
+                    }
+                }
+            }
+            sf.DefaultDrawingOptions.PointShape = tkPointShapeType.ptShapeRegular;
+            sf.DefaultDrawingOptions.PointSize = 10;
+            sf.DefaultDrawingOptions.PointSidesCount = 4;
+            sf.DefaultDrawingOptions.FillColor = _mapWinGISUtils.ColorByName(tkMapColor.Orange);
+            sf.DefaultDrawingOptions.LineColor = _mapWinGISUtils.ColorByName(tkMapColor.Black);
+            sf.DefaultDrawingOptions.LineWidth = 1.5f;
+            return sf;
+        }
         public static Shapefile TrackFromGPX(GPXFile gpxFile, out List<int>handles)
         {
             handles = new List<int>();

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Reflection;
 using System.Management;
+using System.Xml;
 
 namespace GPXManager.entities
 {
@@ -25,6 +26,27 @@ namespace GPXManager.entities
             UserSettingsFilename;
 
 
+        public static string IsValidXMLFile(string xmlFile)
+        {
+            string xml = File.OpenText(xmlFile).ReadToEnd();
+            using (XmlReader reader = XmlReader.Create(new StringReader(xml)))
+            {
+                try
+                {
+                    var result = reader.Read();
+                }
+                catch(XmlException)
+                {
+                    return "Invalid XML";
+                }
+                catch(Exception ex)
+                {
+                    Logger.Log(ex);
+                    return ex.Message;
+                }
+                return "Valid XML";
+            }
+        }
         public static bool MapOCXInstalled
         {
             get { return File.Exists(MapOCXPath); }

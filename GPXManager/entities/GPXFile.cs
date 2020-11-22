@@ -28,6 +28,7 @@ namespace GPXManager.entities
             TimeStampUTC = fileInfo.CreationTimeUtc;
             DateModifiedUTC = fileInfo.LastWriteTimeUtc;
             Size = fileInfo.Length;
+            XML = File.OpenText(FileInfo.FullName).ReadToEnd();
         }
         public DateTime MonthYear
         {
@@ -144,10 +145,20 @@ namespace GPXManager.entities
                 }
             }
 
-            if (deviceGPX != null)
+
+            if (deviceGPX != null || (deviceGPX==null && XML!=null))
             {
-                //var waypoints = Entities.WaypointViewModel.ReadWaypointFromDeviceGPX(deviceGPX);
-                var waypoints = Entities.WaypointViewModel.ReadWaypointsFromFile(deviceGPX,true);
+
+
+                List<Waypoint> waypoints = null;
+                if (deviceGPX != null)
+                {
+                    waypoints = Entities.WaypointViewModel.ReadWaypointsFromFile(deviceGPX, true);
+                }
+                else if(XML != null & XML.Length>0)
+                {
+                    waypoints = Entities.WaypointViewModel.ReadWaypointFromXML(XML,FileName);
+                }
                 if(waypoints==null)
                 {
                     WaypointCount = 0;

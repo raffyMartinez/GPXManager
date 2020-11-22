@@ -17,6 +17,9 @@ namespace GPXManager.entities
             DeviceGPXes = getDeviceGPXes();
         }
 
+
+
+
         public List<DeviceGPX> getDeviceGPXes()
         {
             var thisList = new List<DeviceGPX>();

@@ -25,11 +25,16 @@ namespace GPXManager.entities.mapping
 
         }
 
-
+        public static void RemoveGPXTrackVertices()
+        {
+            _mapInterActionHandler.MapLayersHandler.RemoveLayerByKey("gpx_track_vertices");
+        }
         public static void RemoveGPXLayersFromMap()
         {
             _mapInterActionHandler.MapLayersHandler.RemoveLayerByKey("gpxfile_track");
             _mapInterActionHandler.MapLayersHandler.RemoveLayerByKey("gpx_waypoints");
+            RemoveGPXTrackVertices();
+
         }
 
         public static void Cleanup()
@@ -38,12 +43,17 @@ namespace GPXManager.entities.mapping
             _mapInterActionHandler.ShapesSelected -= _mapInterActionHandler_ShapesSelected;
             _mapInterActionHandler = null;
         }
+        
+
         public static void RemoveAllFromMap()
         {
             Entities.GPXFileViewModel.MarkAllNotShownInMap();
+            Entities.DeviceGPXViewModel.MarkAllNotShownInMap();
         }
         public static Shapefile TrackShapefile { get; set; }
         public static Shapefile WaypointsShapefile { get; set; }
+
+        public static Shapefile TrackVerticesShapefile { get; set; }
     
     }
 }

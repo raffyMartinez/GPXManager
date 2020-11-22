@@ -29,6 +29,7 @@ namespace GPXManager.entities.mapping
 
         public static MapLayer GPXTracksLayer { get; set; }
 
+        public static GPXFile TrackGPXFile{get;set;}
         public static MapLayer GPXWaypointsLayer { get; set; }
 
         public static MapLayersViewModel MapLayersViewModel { get; set; }
@@ -65,6 +66,7 @@ namespace GPXManager.entities.mapping
                 TileProviders = null;
             }
         }
+
 
         public static string CoastLineFile
         {

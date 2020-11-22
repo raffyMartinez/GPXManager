@@ -72,9 +72,9 @@
                 <Button x:Name="buttonSelectNone" Click="OnToolbarButtonClick" ToolTip="Clear selectiong">
                     <Image Source="select_none1.png" OpacityMask="White" />
                 </Button>
-                <Button x:Name="buttonTrack" Click="OnToolbarButtonClick" ToolTip="Track">
+                <ToggleButton x:Name="buttonTrack" Checked="OnToolbarButtonChecked" Unchecked="OnToolbarButtonChecked" ToolTip="Show or hide vertices" IsEnabled="False">
                     <Image Source="track.png" OpacityMask="White" />
-                </Button>
+                </ToggleButton>
                 <Button x:Name="buttonRuler" Click="OnToolbarButtonClick" ToolTip="Measure">
                     <Image Source="ruler.png" OpacityMask="White" />
                 </Button>

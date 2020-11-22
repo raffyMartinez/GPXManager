@@ -24,6 +24,7 @@ using System.Windows.Shapes;
 using System.IO;
 using Xceed.Wpf.AvalonDock.Controls;
 using WindowMenuItem = System.Windows.Controls.MenuItem;
+using System.Windows.Controls.Primitives;
 
 namespace GPXManager.views
 {
@@ -56,10 +57,10 @@ namespace GPXManager.views
             return _instance;
         }
 
-        
+
         private void OnWindowClosing(object sender, CancelEventArgs e)
         {
-            if(!MapWindowManager.MapStateFileExists)
+            if (!MapWindowManager.MapStateFileExists)
             {
                 SaveMapState();
             }
@@ -74,7 +75,7 @@ namespace GPXManager.views
             ParentWindow.Focus();
         }
 
-
+        
 
         public GPXFile GPXFile { get; set; }
         public MainWindow ParentWindow { get; set; }
@@ -114,14 +115,14 @@ namespace GPXManager.views
             MapLayersHandler.OnLayerVisibilityChanged += MapLayersHandler_OnLayerVisibilityChanged;
             GPXMappingManager.MapInteractionHandler = MapInterActionHandler;
             TripMappingManager.MapInteractionHandler = MapInterActionHandler;
-            
 
+            SetButtonEnabled();
 
         }
 
         private void MapLayersHandler_OnLayerVisibilityChanged(MapLayersHandler s, LayerEventArg e)
         {
-            switch(e.LayerName)
+            switch (e.LayerName)
             {
                 case "Coastline":
                     menuMapCoastlineVisible.IsChecked = e.LayerVisible;
@@ -132,9 +133,10 @@ namespace GPXManager.views
         private void OnMapCurrentLayer(MapLayersHandler s, LayerEventArg e)
         {
             CurrentLayer = s.CurrentMapLayer;
+            SetButtonEnabled();
         }
 
-        
+
 
         private void OnMapShapeSelected(MapInterActionHandler s, LayerEventArg e)
         {
@@ -152,8 +154,8 @@ namespace GPXManager.views
                         var dataGrid = (System.Windows.Controls.DataGrid)LayerSelector;
                         string fileName = sf.CellValue[fileNameField, SelectedShapeIndexes[0]];
                         string gps = sf.CellValue[gpsField, SelectedShapeIndexes[0]];
-                        string itemGPS="";
-                        string itemFilename = ""; 
+                        string itemGPS = "";
+                        string itemFilename = "";
                         foreach (var item in dataGrid.Items)
                         {
                             switch (dataGrid.Name)
@@ -169,7 +171,7 @@ namespace GPXManager.views
                                     itemFilename = gpxFile.FileName;
                                     break;
                             }
-                            if (itemGPS==gps && itemFilename==fileName)
+                            if (itemGPS == gps && itemFilename == fileName)
                             {
                                 dataGrid.SelectedItem = item;
                                 dataGrid.ScrollIntoView(item);
@@ -212,7 +214,7 @@ namespace GPXManager.views
                 case "menuAddLayerBoundaryLGU":
                     string feedfBack = "";
                     MapWindowManager.AddLGUBoundary(out feedfBack);
-                    if(feedfBack.Length>0)
+                    if (feedfBack.Length > 0)
                     {
                         System.Windows.MessageBox.Show(feedfBack, "GPX Manager", MessageBoxButton.OK, MessageBoxImage.Information);
                     }
@@ -258,7 +260,7 @@ namespace GPXManager.views
                         coast = MapLayersHandler.get_MapLayer("Coastline");
                     }
                     MapLayersHandler.EditLayer(coast.Handle, coast.Name, menuItem.IsChecked);
-                    
+
                     break;
                 case "menuMapTilesVisible":
                     if (menuItem.IsChecked)
@@ -287,6 +289,8 @@ namespace GPXManager.views
         {
             tkCursorMode cursorMode = tkCursorMode.cmNone;
             tkCursor cursor = tkCursor.crsrArrow;
+
+
             switch (((System.Windows.Controls.Button)sender).Name)
             {
                 case "buttonDataScreen":
@@ -381,10 +385,71 @@ namespace GPXManager.views
                     break;
 
             }
+
+
             MapControl.CursorMode = cursorMode;
             MapControl.MapCursor = cursor;
         }
 
+        private void SetButtonEnabled()
+        {
+            double buttonOpacityDisabled = .20d;
 
+            buttonTrack.IsEnabled = false;
+
+            if (CurrentLayer != null)
+            {
+                buttonTrack.IsEnabled = CurrentLayer.LayerType == "ShapefileClass" &&
+                    ((Shapefile)CurrentLayer.LayerObject).ShapefileType == ShpfileType.SHP_POLYLINE;
+            }
+
+
+
+            if(!buttonTrack.IsEnabled)
+            {
+                buttonTrack.Opacity = buttonOpacityDisabled;
+            }
+            else
+            {
+                buttonTrack.Opacity = 1;
+            }
+        }
+        private void OnToolbarButtonChecked(object sender, RoutedEventArgs e)
+        {
+
+            ToggleButton tb = (ToggleButton)sender;
+            switch(tb.Name)
+            {
+                case "buttonTrack":
+                    if((bool)tb.IsChecked)
+                    {
+                        if(MapWindowManager.TrackGPXFile!=null)
+                        {
+                            List<int> handles = new List<int>();
+                            var sf = ShapefileFactory.GPXTrackVertices(MapWindowManager.TrackGPXFile,out handles);
+                            MapWindowManager.MapLayersHandler.AddLayer(sf, "Vertices", uniqueLayer: true,layerKey:sf.Key,rejectIfExisting:true);
+                            MapWindowManager.MapLayersWindow.RefreshCurrentLayer();
+                        }
+                        else
+                        {
+                            ((Shapefile)CurrentLayer.LayerObject).DefaultDrawingOptions.VerticesVisible = true;
+                        }
+                    }
+                    else
+                    {
+                        if (MapWindowManager.TrackGPXFile != null)
+                        {
+                            GPXMappingManager.RemoveGPXTrackVertices();
+                        }
+                        else
+                        {
+                            ((Shapefile)CurrentLayer.LayerObject).DefaultDrawingOptions.VerticesVisible = false;
+                        }
+
+                    }
+                    MapControl.Redraw();
+                    break;
+            }
+        }
     }
 }

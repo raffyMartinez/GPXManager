@@ -88,10 +88,11 @@ namespace GPXManager.entities
             }
         }
 
-        public List<Waypoint>ReadWaypointFromDeviceGPX(DeviceGPX deviceGPX)
+
+        public List<Waypoint> ReadWaypointFromXML(string xml, string filename)
         {
             List<Waypoint> wpts = new List<Waypoint>();
-            using (XmlReader reader = XmlReader.Create(new StringReader(deviceGPX.GPX)))
+            using (XmlReader reader = XmlReader.Create(new StringReader(xml)))
             {
                 while (reader.Read())
                 {
@@ -101,7 +102,7 @@ namespace GPXManager.entities
                         {
                             Waypoint namedWaypoint = new Waypoint();
                             namedWaypoint.Read(reader);
-                            namedWaypoint.GPXFileName = Path.GetFileName(deviceGPX.Filename);
+                            namedWaypoint.GPXFileName = Path.GetFileName(filename);
                             wpts.Add(namedWaypoint);
                         }
                     }
@@ -109,6 +110,32 @@ namespace GPXManager.entities
             }
             return wpts;
         }
+
+        public List<Waypoint>ReadWaypointFromDeviceGPX(DeviceGPX deviceGPX)
+        {
+            return ReadWaypointFromXML(deviceGPX.GPX, deviceGPX.Filename);
+        }
+        //public List<Waypoint>ReadWaypointFromDeviceGPX1(DeviceGPX deviceGPX)
+        //{
+        //    List<Waypoint> wpts = new List<Waypoint>();
+        //    using (XmlReader reader = XmlReader.Create(new StringReader(deviceGPX.GPX)))
+        //    {
+        //        while (reader.Read())
+        //        {
+        //            if (reader.IsStartElement())
+        //            {
+        //                if (reader.Name == "wpt")
+        //                {
+        //                    Waypoint namedWaypoint = new Waypoint();
+        //                    namedWaypoint.Read(reader);
+        //                    namedWaypoint.GPXFileName = Path.GetFileName(deviceGPX.Filename);
+        //                    wpts.Add(namedWaypoint);
+        //                }
+        //            }
+        //        }
+        //    }
+        //    return wpts;
+        //}
 
         public List<Waypoint> ReadWaypointsFromFile( DeviceGPX deviceGPX=null, bool waypointsOnly=false)
         {
