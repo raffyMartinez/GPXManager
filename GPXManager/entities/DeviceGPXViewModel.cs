@@ -12,6 +12,7 @@ namespace GPXManager.entities
 {
     public class DeviceGPXViewModel
     {
+
         private bool _success;
         private int _count;
         public ObservableCollection<DeviceGPX> DeviceGPXCollection { get; set; }
@@ -25,6 +26,93 @@ namespace GPXManager.entities
             DeviceGPXCollection = new ObservableCollection<DeviceGPX>(DeviceWaypointGPXes.DeviceGPXes);
             DeviceGPXCollection.CollectionChanged += DeviceWptGPXCollection_CollectionChanged;
             ConvertDeviceGPXInArchiveToGPXFile();
+            GPXBackupFolder = "GPXBackup";
+        }
+        
+        /// <summary>
+        /// checks if the backup location exists. It not, it will create one.
+        /// </summary>
+        /// <param name="folderForBackup"></param>
+        public void CheckGPXBackupFolder()
+        {
+            string folderForBackup = Global.Settings.ComputerGPXFolder;
+            if (!Directory.Exists($@"{folderForBackup}\{GPXBackupFolder}"))
+            {
+                Directory.CreateDirectory($@"{folderForBackup}\{GPXBackupFolder}");
+            }
+        }
+
+        public string GPXBackupFolder { get; private set; }
+        public int BackupGPXToDrive()
+        {
+            string folderForBackup = Global.Settings.ComputerGPXFolder;
+            int count = 0;
+            DirectoryInfo backupDir;
+            DirectoryInfo gpsBackupDir;
+            DirectoryInfo gpsBackupDirMonth;
+            if(!Directory.Exists($@"{folderForBackup}\{GPXBackupFolder}"))
+            {
+                backupDir =  Directory.CreateDirectory($@"{folderForBackup}\{GPXBackupFolder}");
+            }
+            else
+            {
+                backupDir = new DirectoryInfo(($@"{folderForBackup}\{GPXBackupFolder}"));
+            }
+            foreach(var gps in Entities.GPSViewModel.GPSCollection.OrderBy(t=>t.DeviceName))
+            {
+
+                string gpsDirectory = $@"{backupDir.FullName}\{gps.DeviceName}";
+                if (Directory.Exists(gpsDirectory))
+                {
+                    gpsBackupDir = new DirectoryInfo(gpsDirectory);
+                }
+                else
+                {
+                    gpsBackupDir = Directory.CreateDirectory(gpsDirectory);
+                }
+
+                if (Entities.DeviceGPXViewModel.ArchivedGPXFiles.Keys.Contains(gps))
+                {
+                    foreach (var gpxFile in Entities.DeviceGPXViewModel.ArchivedGPXFiles[gps])
+                    {
+                        var fileTimeStart = gpxFile.DateRangeStart;
+                        var monthYear = new DateTime(fileTimeStart.Year, fileTimeStart.Month, 1).ToString("MMM-yyyy");
+                        if(Directory.Exists($@"{gpsBackupDir.FullName}\{monthYear}"))
+                        {
+                            gpsBackupDirMonth = new DirectoryInfo($@"{gpsBackupDir.FullName}\{monthYear}");
+                        }
+                        else
+                        {
+                            gpsBackupDirMonth = Directory.CreateDirectory($@"{gpsBackupDir.FullName}\{monthYear}");
+                        }
+
+                        string fileToBackup = $@"{gpsBackupDirMonth.FullName}\{gpxFile.FileName}";
+                        if (File.Exists(fileToBackup))
+                        {
+                            if(CreateMD5(gpxFile.XML) != CreateMD5( File.OpenText(fileToBackup).ReadToEnd()))
+                            {
+                                var pattern = (Path.GetFileNameWithoutExtension(fileToBackup) + "*.gpx");
+                                var files = Directory.GetFiles(gpsBackupDirMonth.FullName,pattern );
+                                string versionedFile = $@"{Path.ChangeExtension(fileToBackup, null)}_{((int)(DateTime.Now.ToOADate()*1000)).ToString()}.gpx";
+                                using (StreamWriter sw = File.CreateText(versionedFile))
+                                {
+                                    sw.Write(gpxFile.XML);
+                                }
+                            }
+
+                        }
+                        else
+                        {
+                            using (StreamWriter sw = File.CreateText(fileToBackup))
+                            {
+                                sw.Write(gpxFile.XML);
+                                count++;
+                            }
+                        }
+                    }
+                }
+            }
+            return count;
         }
 
         public int ImportGPX(string folder, GPS in_gps = null, bool first=false)
@@ -53,7 +141,7 @@ namespace GPXManager.entities
                         else if(gps==null && in_gps!=null)
                         {
                             current_gps = in_gps;
-                        }
+                        } 
 
                         if (current_gps != null)
                         {

@@ -90,6 +90,9 @@
                 <Button x:Name="buttonSettings" Click="OnToolbarButtonClick" ToolTip="Settings">
                     <Image Source="gears.png" OpacityMask="White" />
                 </Button>
+                <Button x:Name="buttonAbout" Click="OnToolbarButtonClick" ToolTip="About this software">
+                    <Image Source="question.png" OpacityMask="White" />
+                </Button>                
                 <Button x:Name="buttonExit" Click="OnToolbarButtonClick" ToolTip="Close">
                     <Image Source="exit.png" OpacityMask="White" />
                 </Button>
@@ -139,9 +142,9 @@
                                ShowSummary="True" MouseDoubleClick="OnPropertyMouseDblClick" 
                                SelectedPropertyItemChanged="OnPropertyChanged" PropertyValueChanged="OnPropertyValueChanged"
                                    Margin="10" Foreground="{DynamicResource {x:Static SystemColors.ActiveCaptionTextBrushKey}}"/>
-                    <Button x:Name="buttonEjectDevice" Height="30" Width="60" Click="OnButtonClick" Content="Eject">
-                        
-                    </Button>
+                    <Button x:Name="buttonEjectDevice" Height="30" Width="60" Click="OnButtonClick" Content="Eject"/>
+
+
                 </StackPanel>                    
 
                 <DataGrid x:Name="dataGridCalendar" Visibility="Collapsed" Margin="10" 

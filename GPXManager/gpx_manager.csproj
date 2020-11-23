@@ -497,5 +497,8 @@
   <ItemGroup>
     <Resource Include="entities\mapping\Views\move to left.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="question.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

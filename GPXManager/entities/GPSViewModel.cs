@@ -324,7 +324,7 @@ namespace GPXManager.entities
             }
         }
         public EntityValidationResult ValidateGPS(GPS gps, bool isNew, 
-            string oldAssignedName="", string oldCode="", bool fromImport=false)
+            string oldAssignedName="", string oldCode="", bool fromImport=false, bool fromArchive=false)
         {
             EntityValidationResult evr = new EntityValidationResult();
 
@@ -353,7 +353,8 @@ namespace GPXManager.entities
                 evr.AddMessage("Folder cannot be empty");
             }
 
-            if (!fromImport && !Directory.Exists($"{gps.Device.Disks[0].Caption}\\{gps.Folder}"))
+
+            else if (!fromArchive &&  !fromImport && !Directory.Exists($"{gps.Device.Disks[0].Caption}\\{gps.Folder}"))
             {
                 evr.AddMessage("GPX folder does not exist");
             }
