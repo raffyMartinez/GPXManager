@@ -24,10 +24,19 @@ namespace GPXManager.entities
             return DetectedDeviceCollection.ToList();
         }
 
-
-        public DetectedDevice GetDevice(string serialNumber)
+        public DetectedDevice GetDeviceEx(string diskFileID)
         {
-            CurrentEntity = DetectedDeviceCollection.FirstOrDefault(n => n.SerialNumber == serialNumber);
+            CurrentEntity = DetectedDeviceCollection.FirstOrDefault(t => t.Disks[0].GPSID == diskFileID);
+            return CurrentEntity;
+        }
+        public DetectedDevice GetDevice(string identifier)
+        {
+            CurrentEntity = DetectedDeviceCollection.FirstOrDefault(n => n.GPSID == identifier);
+
+            if(CurrentEntity==null)
+            {
+                CurrentEntity = DetectedDeviceCollection.FirstOrDefault(n => n.PNPDeviceID == identifier);
+            }
             return CurrentEntity;
         }
 
@@ -94,6 +103,23 @@ namespace GPXManager.entities
                                         VolumeSerialNumber = disk.Properties["VolumeSerialNumber"].Value.ToString(),
                                         VolumeName = disk.Properties["VolumeName"].Value.ToString()
                                     };
+
+                                    var gpsIDs = Directory.GetFiles($"{dsk.Caption}", "*.gpsid");
+                                    int id_count = gpsIDs.Length;
+
+                                    if (id_count == 1)
+                                    {
+                                        //dsk.GPSID = Path.GetFileName(gpsIDs[0]);
+                                        device.GPSID = Path.GetFileName(gpsIDs[0]);
+                                    }
+                                    //else if(id_count==0)
+                                    //{
+                                    //    throw new Exception("gpsid file is missing");
+                                    //}
+                                    //else
+                                    //{
+                                    //    throw new Exception("Cannot have more than 1 gpsid file");
+                                    //}
                                 }
                                 catch (Exception ex)
                                 {
@@ -108,7 +134,10 @@ namespace GPXManager.entities
 
                             }
                         }
-                        AddDevice(device);
+                        if (GetDevice(device.PNPDeviceID) == null)
+                        {
+                            AddDevice(device);
+                        }
                         deviceCount++;
                     }
                 }
@@ -129,7 +158,7 @@ namespace GPXManager.entities
                         int newIndex = e.NewStartingIndex;
                         DetectedDevice newDevice = DetectedDeviceCollection[newIndex];
                         CurrentEntity = newDevice;
-                        
+
                     }
                     break;
                 case NotifyCollectionChangedAction.Remove:
@@ -155,13 +184,22 @@ namespace GPXManager.entities
         {
             if (device == null)
                 throw new ArgumentNullException("Error: The argument is Null");
-            DetectedDeviceCollection.Add(device);
 
-            var gps = Entities.GPSViewModel.GetGPSEx(device.SerialNumber);
-            if(gps!=null)
-            {
-                device.GPS = gps;
-            }
+                DetectedDeviceCollection.Add(device);
+                var diskFileID = device.GPSID;
+                //var gps = Entities.GPSViewModel.GetGPSEx(device.SerialNumber);
+                var gps = Entities.GPSViewModel.GetGPSEx(diskFileID);
+                if (gps != null)
+                {
+                    device.GPS = gps;
+                    //if(gps.PNPDeviceID==null || gps.PNPDeviceID.Length==0)
+                    //{
+                    //    gps.PNPDeviceID = device.PNPDeviceID;
+                    //    gps.VolumeName = device.Disks[0].VolumeName;
+                    //    Entities.GPSViewModel.UpdateRecordInRepo(gps);
+                    //}
+                }
+            
         }
 
         public void UpdateDeviceInCollection(DetectedDevice device)
@@ -231,7 +269,7 @@ namespace GPXManager.entities
                 DeviceIoControl(handle, IOCTL_STORAGE_EJECT_MEDIA, IntPtr.Zero, 0,
                     IntPtr.Zero, 0, ref dummy, IntPtr.Zero);
 
-                 CloseHandle(handle);
+                CloseHandle(handle);
 
                 //MessageBox.Show("OK to remove drive.");
                 statusMessage = $"OK to remove drive.";

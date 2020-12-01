@@ -19,5 +19,7 @@ namespace GPXManager.entities
         public string FileSystem { get; set; }
 
         public string DeviceID { get; set; }
+
+        public string GPSID { get; set; }
     }
 }

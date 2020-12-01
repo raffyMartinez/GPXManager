@@ -10,7 +10,7 @@ namespace GPXManager.entities
 {
     public  class SerializeGPS
     {
-        public  List<GPS> GPSList { get; set; }
+        public  List<GPSEdited> GPSList { get; set; }
         public  void Save(string fileName)
         {
             if (!Directory.Exists(Path.GetDirectoryName(fileName)))

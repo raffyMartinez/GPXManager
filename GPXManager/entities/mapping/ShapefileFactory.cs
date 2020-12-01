@@ -87,6 +87,68 @@ namespace GPXManager.entities.mapping
                 return null;
             }
         }
+
+        public static Shapefile PointsFromTrips(List<Trip> trips,out List<int>handles)
+        {
+            int counter = 0;
+            handles = new List<int>();
+            Shapefile sf = null;
+            foreach(var trip in trips)
+            {
+                if(counter==0)
+                {
+                    if (TripMappingManager.WaypointsShapefile == null || TripMappingManager.WaypointsShapefile.NumFields == 0)
+                    {
+                        sf = new Shapefile();
+                        if (sf.CreateNewWithShapeID("", ShpfileType.SHP_POINT))
+                        {
+                            sf.EditAddField("Name", FieldType.STRING_FIELD, 1, 1);
+                            sf.EditAddField("Type", FieldType.STRING_FIELD, 1, 1);
+                            sf.EditAddField("Set number", FieldType.INTEGER_FIELD, 3, 1);
+                            sf.EditAddField("TimeStamp", FieldType.DATE_FIELD, 1, 1);
+                            sf.EditAddField("GPS", FieldType.STRING_FIELD, 1, 1);
+                            sf.EditAddField("Filename", FieldType.STRING_FIELD, 1, 1);
+                            sf.Key = "trip_waypoints";
+                            sf.GeoProjection = globalMapping.GeoProjection;
+                            TripMappingManager.WaypointsShapefile = sf;
+                        }
+                    }
+                    else
+                    {
+                        sf = TripMappingManager.WaypointsShapefile;
+                    }
+
+                    foreach(var pt in trip.Waypoints)
+                    {
+                        var shp = new Shape();
+                        if (shp.Create(ShpfileType.SHP_POINT))
+                        {
+                            if (shp.AddPoint(pt.Waypoint.Longitude, pt.Waypoint.Latitude) >= 0)
+                            {
+                                var shpIndex = sf.EditAddShape(shp);
+                                if (shpIndex >= 0)
+                                {
+                                    sf.EditCellValue(sf.FieldIndexByName["Name"], shpIndex, pt.WaypointName);
+                                    sf.EditCellValue(sf.FieldIndexByName["TimeStamp"], shpIndex, pt.TimeStampAdjusted);
+                                    sf.EditCellValue(sf.FieldIndexByName["Type"], shpIndex, pt.WaypointType);
+                                    sf.EditCellValue(sf.FieldIndexByName["Set number"], shpIndex, pt.SetNumber);
+                                    sf.EditCellValue(sf.FieldIndexByName["GPS"], shpIndex, trip.GPS.DeviceName);
+                                    sf.EditCellValue(sf.FieldIndexByName["Filename"], shpIndex, trip.GPXFileName);
+                                    handles.Add(shpIndex);
+                                }
+                            }
+                        }
+                    }
+                }
+                counter++;
+            }
+
+            sf.DefaultDrawingOptions.PointShape = tkPointShapeType.ptShapeCircle;
+            sf.DefaultDrawingOptions.PointSize = 12;
+            sf.DefaultDrawingOptions.FillColor = _mapWinGISUtils.ColorByName(tkMapColor.Red);
+
+            return sf;
+        }
         public static Shapefile PointsFromWayPointList(List<TripWaypoint>wpts, out List<int>handles, string gpsName, string fileName)
         {
             handles = new List<int>();
@@ -147,7 +209,53 @@ namespace GPXManager.entities.mapping
             }
         }
 
-        public static Shapefile TrackFromTrip(Trip trip, out List<int>handles)
+        public static Shapefile TrackFromTrip( List<Trip> trips, out List<int>handles)
+        {
+            handles = new List<int>();
+            Shapefile sf=null;
+            var shpIndex = -1;
+            int counter = 0;
+            foreach(var trip in trips)
+            {
+                if(counter==0)
+                {
+                    if (TripMappingManager.TrackShapefile == null || TripMappingManager.TrackShapefile.NumFields == 0)
+                    {
+                        sf = new Shapefile();
+                        if (sf.CreateNewWithShapeID("", ShpfileType.SHP_POLYLINE))
+                        {
+                            sf.EditAddField("GPS", FieldType.STRING_FIELD, 1, 1);
+                            sf.EditAddField("Filename", FieldType.STRING_FIELD, 1, 1);
+                            sf.EditAddField("Length", FieldType.DOUBLE_FIELD, 1, 1);
+                            sf.Key = "trip_track";
+                            sf.GeoProjection = globalMapping.GeoProjection;
+                            TripMappingManager.TrackShapefile = sf;
+                        }
+                    }
+                    else
+                    {
+                        sf = TripMappingManager.TrackShapefile;
+                    }
+                }
+
+                var shp = new Shape();
+                if (shp.Create(ShpfileType.SHP_POLYLINE))
+                {
+                    foreach (var wpt in trip.Track.Waypoints)
+                    {
+                        shp.AddPoint(wpt.Longitude, wpt.Latitude);
+                    }
+                }
+                shpIndex = sf.EditAddShape(shp);
+                handles.Add(shpIndex);
+                sf.EditCellValue(sf.FieldIndexByName["GPS"], shpIndex, trip.GPS.DeviceName);
+                sf.EditCellValue(sf.FieldIndexByName["FileName"], shpIndex, trip.GPXFileName);
+                sf.EditCellValue(sf.FieldIndexByName["Length"], shpIndex, trip.Track.Statistics.Length);
+                counter++;
+            }
+            return sf;
+        }
+        public static Shapefile TrackFromTrip1( Trip trip, out List<int>handles)
         {
             handles = new List<int>();
             var shpIndex = -1;

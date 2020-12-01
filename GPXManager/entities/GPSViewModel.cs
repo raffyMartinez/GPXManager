@@ -19,25 +19,6 @@ namespace GPXManager.entities
         public ObservableCollection<GPS> GPSCollection { get; set; }
         private GPSRepository GPSes { get; set; }
 
-        //public int ImportGPS(string xmlFile)
-        //{
-        //    int importedCount = 0;
-        //    XmlSerializer myDeserializer = new XmlSerializer(typeof(GPS));
-        //    FileStream myFileStream = new FileStream(xmlFile, FileMode.Open);
-        //    var gpsList= (List<GPS>)myDeserializer.Deserialize(myFileStream);
-            
-        //    foreach(var gps in gpsList)
-        //    {
-        //        if(GetGPSEx(gps.DeviceID)==null && AddRecordToRepo(gps))
-        //        {
-        //            importedCount++;
-        //        }
-        //    }
-
-        //    myFileStream.Close();
-        //    return importedCount;
-            
-        //}
 
         
         public int ImportGPS(string xmlFile, out string message)
@@ -114,7 +95,12 @@ namespace GPXManager.entities
         }
         public void Serialize(string fileName)
         {
-            SerializeGPS serializeGPS = new SerializeGPS { GPSList = GPSCollection.ToList() };
+            var editedGPSes = new List<GPSEdited>();
+            foreach(var item in GPSCollection)
+            {
+                editedGPSes.Add(new GPSEdited(item));
+            }
+            SerializeGPS serializeGPS = new SerializeGPS { GPSList = editedGPSes };
             serializeGPS.Save(fileName);
         }
         public GPSViewModel()
@@ -214,6 +200,12 @@ namespace GPXManager.entities
         public GPS GetGPSEx (string deviceID)
         {
             CurrentEntity = GPSCollection.FirstOrDefault(n => n.DeviceID == deviceID);
+
+            if(CurrentEntity==null)
+            {
+                CurrentEntity = GPSCollection.FirstOrDefault(n => n.Device?.PNPDeviceID == deviceID);
+            }
+
             if (CurrentEntity != null)
             {
                 GPSModels = GetModels(CurrentEntity.Brand);

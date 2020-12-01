@@ -22,14 +22,34 @@ namespace GPXManager.entities.mapping
 
         public static void RemoveTripLayersFromMap()
         {
-            _mapInterActionHandler.MapLayersHandler.RemoveLayerByKey("trip_track");
-            _mapInterActionHandler.MapLayersHandler.RemoveLayerByKey("trip_waypoints");
+            if (_mapInterActionHandler != null)
+            {
+                _mapInterActionHandler.MapLayersHandler.RemoveLayerByKey("trip_track");
+                _mapInterActionHandler.MapLayersHandler.RemoveLayerByKey("trip_waypoints");
+            }
         }
 
         private static void _mapInterActionHandler_ShapesSelected(MapInterActionHandler s, LayerEventArg e)
         {
 
         }
+
+       
+        public static bool MapTrip(List<Trip> trips)
+        {
+
+            var trackHandles = new List<int>();
+            var pointHandles= new List<int>();
+            var sf = ShapefileFactory.TrackFromTrip(trips, out trackHandles);
+            var pointSF = ShapefileFactory.PointsFromTrips(trips, out pointHandles);
+
+            MapInteractionHandler.MapLayersHandler.AddLayer(sf, "Track", uniqueLayer: true, layerKey: sf.Key);
+            MapInteractionHandler.MapLayersHandler.AddLayer(pointSF, "Waypoints", uniqueLayer: true, layerKey: sf.Key);
+            TrackShapefile = sf;
+            WaypointsShapefile = pointSF;
+            return sf != null;
+        }
+
         public static Shapefile TrackShapefile { get; set; }
         public static Shapefile WaypointsShapefile { get; set; }
 

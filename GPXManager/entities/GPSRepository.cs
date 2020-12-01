@@ -13,6 +13,7 @@ namespace GPXManager.entities
 
         public GPSRepository()
         {
+            //UpdateTable();
             GPSes = getGPSes();
         }
 
@@ -42,6 +43,8 @@ namespace GPXManager.entities
                             gps.Brand = dr["Brand"].ToString();
                             gps.Model = dr["Model"].ToString();
                             gps.Folder = dr["Folder"].ToString();
+                            //gps.PNPDeviceID = dr["PNPDeviceID"].ToString();
+                            //gps.VolumeName = dr["VolumeName"].ToString();
                             listGPS.Add(gps);
                         }
                     }
@@ -61,8 +64,18 @@ namespace GPXManager.entities
             using (OleDbConnection conn = new OleDbConnection(Global.ConnectionString))
             {
                 conn.Open();
-                var sql = $@"Insert into devices(Code,DeviceName,Brand,Model,DeviceID,Folder,DateAdded)
-                           Values ('{gps.Code}','{gps.DeviceName}', '{gps.Brand}','{gps.Model}','{gps.DeviceID}','{gps.Folder}','{DateTime.Now.ToString("dd-MMMM-yyyyy HH:mm:ss")}')";
+                //var sql = $@"Insert into devices(Code,DeviceName,Brand,Model,DeviceID,Folder,DateAdded,PNPDeviceID,VolumeName)
+                  var sql = $@"Insert into devices(Code,DeviceName,Brand,Model,DeviceID,Folder,DateAdded)
+                           Values (
+                            '{gps.Code}',
+                            '{gps.DeviceName}', 
+                            '{gps.Brand}',
+                            '{gps.Model}',
+                            '{gps.DeviceID}',
+                            '{gps.Folder}',
+                            '{DateTime.Now.ToString("dd-MMMM-yyyyy HH:mm:ss")}'
+                           )";
+
                 using (OleDbCommand update = new OleDbCommand(sql, conn))
                 {
                     success = update.ExecuteNonQuery() > 0;
@@ -89,6 +102,63 @@ namespace GPXManager.entities
                 }
             }
             return success;
+        }
+
+        private bool UpdateTable()
+        {
+            var updated = false;
+            var columns = new List<string>();
+            using (var con = new OleDbConnection(Global.ConnectionString))
+            {
+                con.Open();
+                using (var cmd = new OleDbCommand("select * from devices", con))
+                    using (var reader = cmd.ExecuteReader(CommandBehavior.SchemaOnly))
+                    {
+                        var table = reader.GetSchemaTable();
+                        var nameColIndex = table.Columns["ColumnName"].Ordinal;
+                        foreach (DataRow row in table.Rows)
+                        {
+                            columns.Add(row.ItemArray[nameColIndex].ToString());
+                        }
+                    }
+            }
+
+            if(!columns.Contains("PNPDeviceID"))
+            {
+               if(AddColumn("PNPDeviceID", "TEXT", 150))
+                {
+                    AddColumn("VolumeName", "TEXT", 100);
+                }
+
+            }
+            return updated;
+        }
+
+        private bool AddColumn(string colName, string type, int length)
+        {
+            string sql = $"ALTER TABLE devices ADD COLUMN {colName} {type}({length})";
+            using (var con = new OleDbConnection(Global.ConnectionString))
+            {
+                con.Open();
+                OleDbCommand myCommand = new OleDbCommand();
+                myCommand.Connection = con;
+                myCommand.CommandText = sql;
+                try
+                {
+                    myCommand.ExecuteNonQuery();
+                }
+                catch(InvalidOperationException)
+                {
+                    return false;
+                }
+                catch(Exception ex)
+                {
+                    Logger.Log(ex);
+                    return false;
+                }
+                myCommand.Connection.Close();
+                return true;
+            }
         }
         public bool ClearTable()
         {

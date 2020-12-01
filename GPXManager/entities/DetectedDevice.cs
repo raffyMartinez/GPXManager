@@ -37,6 +37,8 @@ namespace GPXManager.entities
         public int TotalSectors { get; set; }
         public int TotalTracks { get; set; }
 
+        public string GPSID { get; set; }
+
         public int TracksPerCylinder { get; set; }
 
         public int SectorsPerTrack { get; set; }
@@ -54,7 +56,13 @@ namespace GPXManager.entities
                 {
                     var disk = Disks[0];
                     diskSize = FileSizeFormatter.FormatSize(disk.Size);
-                    return $"Drive: {disk.Caption}\r\nVolume: {disk.VolumeName}\r\nSize: {diskSize}\r\nFileSystem: {disk.FileSystem}";
+                    return $"Drive: {disk.Caption}\r\n" +
+                        $"Volume: {disk.VolumeName}\r\n" +
+                        $"Size: {diskSize}\r\n" +
+                        $"FileSystem: {disk.FileSystem}\r\n" +
+                        $"Serial number: {SerialNumber}\r\n" +
+                        $"PNP DeviceID: {PNPDeviceID}\r\n" +
+                        $"GPSID: {GPSID}";
                 }
                 else
                 {
@@ -63,7 +71,14 @@ namespace GPXManager.entities
                     foreach(Disk d in Disks)
                     {
                         diskSize = FileSizeFormatter.FormatSize(d.Size);
-                        summary += $"Disk:{count}\r\n Drive: {d.Caption}\r\nVolume: {d.VolumeName}\r\nSize: {diskSize}\r\nFileSystem: {d.FileSystem}\r\n\r\n";
+                        //summary += $"Disk:{count}\r\n Drive: {d.Caption}\r\nVolume: {d.VolumeName}\r\nSize: {diskSize}\r\nFileSystem: {d.FileSystem}\r\n\r\n";
+                        summary += $"Drive: {d.Caption}\r\n" +
+                                    $"Volume: {d.VolumeName}\r\n" +
+                                    $"Size: {diskSize}\r\n" +
+                                    $"FileSystem: {d.FileSystem}\r\n+" +
+                                    $"Serial number: {SerialNumber}\r\n" +
+                                    $"PNP DeviceID: {PNPDeviceID}\r\n" +
+                                    $"GPSID: {GPSID}";
                         count++;
                     }
                     return summary;

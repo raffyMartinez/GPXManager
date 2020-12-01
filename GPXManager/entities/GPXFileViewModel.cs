@@ -45,6 +45,31 @@ namespace GPXManager.entities
                 item.ShownInMap = false;
             }
         }
+
+        public List<WaypointLocalTime> GetWaypointsMatch(GPXFile trackFile, out List<GPXFile> gpxFiles)
+        {
+            gpxFiles = new List<GPXFile>();
+            var thisList = new List<WaypointLocalTime>();
+            foreach (var g in GPXFileCollection
+                .Where(t => t.GPXFileType == GPXFileType.Waypoint)
+                .Where(t=>t.GPS.DeviceID==trackFile.GPS.DeviceID)
+                )
+            {
+                foreach (var wpt in g.NamedWaypointsInLocalTime)
+                {
+                    if (wpt.Time >= trackFile.DateRangeStart && wpt.Time <= trackFile.DateRangeEnd)
+                    {
+                        thisList.Add(wpt);
+                        if (!gpxFiles.Contains(g))
+                        {
+                            gpxFiles.Add(g);
+                        }
+                    }
+                }
+            }
+
+            return thisList;
+        }
         public List<GPXFile>GetFiles(string deviceID)
         {
             GetFilesFromDevice(Entities.DetectedDeviceViewModel.GetDevice(deviceID));
@@ -59,6 +84,16 @@ namespace GPXManager.entities
                 .FirstOrDefault();
         }
 
+        public List<GPXFile> GetFilesEx(string gpsID, DateTime monthYear)
+        {
+            GetFilesFromDevice(Entities.DetectedDeviceViewModel.GetDevice(gpsID));
+            return GPXFileCollection
+                .Where(t => t.GPS.DeviceID == gpsID)
+                .Where(t => t.DateRangeStart > monthYear)
+                .Where(t => t.DateRangeEnd < monthYear.AddMonths(1))
+                .ToList();
+            //return thisList;
+        }
         public List<GPXFile> GetFiles(string deviceID, DateTime monthYear)
         {
             GetFilesFromDevice(Entities.DetectedDeviceViewModel.GetDevice(deviceID));
@@ -114,13 +149,16 @@ namespace GPXManager.entities
 
         public List<FileInfo>GetGPXFilesFromGPS(DetectedDevice device)
         {
-            var gpxFolder = $"{device.Disks[0].Caption }\\{ device.GPS.Folder}";
-            if (Directory.Exists(gpxFolder))
+            if (device.GPS != null && device.GPS.Folder.Length > 0)
             {
-                return new DirectoryInfo(gpxFolder)
-                    .EnumerateFiles()
-                    .Where(f => f.Extension == ".gpx").ToList();
+                var gpxFolder = $"{device.Disks[0].Caption }\\{ device.GPS.Folder}";
+                if (Directory.Exists(gpxFolder))
+                {
+                    return new DirectoryInfo(gpxFolder)
+                        .EnumerateFiles()
+                        .Where(f => f.Extension == ".gpx").ToList();
 
+                }
             }
             return null;
         }

@@ -115,6 +115,22 @@ namespace GPXManager.entities
         {
             return TripCollection.Where(t => t.DeviceID == deviceID).ToList();
         }
+
+        public List<Trip> GetTrips(GPS gps, string gpxFileName)
+        {
+            return TripCollection
+                .Where(t => t.GPS.DeviceID == gps.DeviceID)
+                .Where(t => t.GPXFileName == gpxFileName)
+                .ToList();
+        }
+        public List<Trip> GetTrips(GPS gps, DateTime dateOfTrip)
+        {
+            return TripCollection
+                .Where(t => t.GPS.DeviceID == gps.DeviceID)
+                .Where(t => t.DateTimeDeparture > dateOfTrip)
+                .Where(t => t.DateTimeDeparture < dateOfTrip.AddDays(1))
+                .ToList();
+        }
         public Trip GetTrip(int tripID)
         {
             CurrentEntity = TripCollection.FirstOrDefault(n => n.TripID == tripID);

@@ -12,7 +12,7 @@ namespace GPXManager.entities
     [DisplayName("GPS")]
     public class GPSEdited
     {
-
+        public GPSEdited() { }
         public GPSEdited(GPS gps)
         {
             DeviceID = gps.DeviceID;
@@ -21,6 +21,8 @@ namespace GPXManager.entities
             Brand = gps.Brand;
             Model = gps.Model;
             Folder = gps.Folder;
+            //PNPDeviceID = gps.PNPDeviceID;
+            //VolumeName = gps.VolumeName;
         }
 
         [ReadOnly(true)]
@@ -35,6 +37,11 @@ namespace GPXManager.entities
         public string Model { get; set; }
 
         public string Folder { get; set; }
+
+      
+       // public string PNPDeviceID { get; set; }
+
+       //public string VolumeName { get; set; }
     }
     public class GPS
     {
@@ -43,7 +50,8 @@ namespace GPXManager.entities
         {
         
         }
-        public GPS(string deviceID, string deviceName, string code, string brand, string model, string folder)
+        public GPS(string deviceID, string deviceName, string code, string brand, 
+            string model, string folder)
         {
             DeviceID = deviceID;
             DeviceName = deviceName;
@@ -51,6 +59,8 @@ namespace GPXManager.entities
             Brand = brand;
             Model = model;
             Folder = folder;
+            //PNPDeviceID = pnpDeviceId;
+            //VolumeName = volumeName;
         }
 
         [ReadOnly(true)]
@@ -65,11 +75,19 @@ namespace GPXManager.entities
 
         public string Folder { get; set; }
 
+        
+
+        //[ReadOnly(true)]
+        //public string PNPDeviceID { get; set; }
+
+        //public string VolumeName { get; set; }
+
         public DetectedDevice Device{
             get
             {
                 if (_device == null)
                 {
+                    //_device = Entities.DetectedDeviceViewModel.GetDevice(DeviceID);
                     _device = Entities.DetectedDeviceViewModel.GetDevice(DeviceID);
                 }
                 return _device;

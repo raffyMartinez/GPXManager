@@ -467,7 +467,9 @@ namespace GPXManager.entities.mapping
                 if(trip.Track.Waypoints.Count>0)
                 {
                     Shapefile sf = null;
-                    sf = ShapefileFactory.TrackFromTrip(trip, out handles);
+                    List<Trip> trips = new List<Trip>();
+                    trips.Add(trip);
+                    sf = ShapefileFactory.TrackFromTrip( trips, out handles);
                     shpfileName = "Trip tracks";
                     MapLayersHandler.AddLayer(sf, shpfileName, uniqueLayer: true, layerKey: sf.Key, rejectIfExisting: true);
                 }

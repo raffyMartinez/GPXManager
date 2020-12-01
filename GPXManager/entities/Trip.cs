@@ -142,19 +142,34 @@ namespace GPXManager.entities
 
         public string XML { get; set; }
 
+        public List<TripWaypoint> Waypoints
+        { 
+            get
+            {
+                return  Entities.TripWaypointViewModel.GetAllTripWaypoints(TripID);
+            }
+        }
         public int WaypointCount
         {
             get
             {
-                var waypoints = Entities.TripWaypointViewModel.GetAllTripWaypoints(TripID);
-                if (waypoints == null)
+                if (Waypoints == null)
                 {
                     return 0;
                 }
                 else
                 {
-                    return waypoints.Count;
+                    return Waypoints.Count;
                 }
+                //var waypoints = Entities.TripWaypointViewModel.GetAllTripWaypoints(TripID);
+                //if (waypoints == null)
+                //{
+                //    return 0;
+                //}
+                //else
+                //{
+                //    return waypoints.Count;
+                //}
             }
         }
         public List<TripWaypointLite> TripWaypoints { get; set; }

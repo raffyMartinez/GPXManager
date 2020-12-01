@@ -32,6 +32,15 @@ namespace GPXManager.views
         private DateTime _oldDepartDate;
         DateTime _oldArriveDate;
         private bool _dateTimeDepartureArrivalChanged;
+        private static EditTripWindow _instance;
+        private DateTime? _defaultStart;
+        private DateTime? _defaultEnd;
+        
+        public static EditTripWindow GetInstance()
+        {
+            if (_instance == null) _instance = new EditTripWindow();
+            return _instance;
+        }
         public EditTripWindow()
         {
             InitializeComponent();
@@ -43,50 +52,93 @@ namespace GPXManager.views
         public string DeviceID { get; set; }
         private void OnWindowClosing(object sender, CancelEventArgs e)
         {
+            ParentWindow.NotifyEditWindowClosing();
             this.SavePlacement();
+            _instance = null;
+        }
+        public void DefaultTripDates(DateTime start, DateTime end)
+        {
+            _defaultStart = start;
+            _defaultEnd = end;
+        }
+        public void RefreshTrip(bool newTrip=false)
+        {
+            ShowTripDetails(newTrip);
         }
         protected override void OnSourceInitialized(EventArgs e)
         {
             base.OnSourceInitialized(e);
             this.ApplyPlacement();
         }
+        private void ShowTripDetails(bool newTrip=false)
+        {
+            if (newTrip)
+            {
+                TripID = Entities.TripViewModel.NextRecordNumber;
+                SetNewTrip();
+            }
+            else
+            {
+                _trip = new TripEdited(Entities.TripViewModel.GetTrip(TripID));
+                labelTitle.Content = $"Details of fishing trip from {_trip.DateTimeDeparture.ToString("yyyy-MMM-dd")}";
+                PropertyGrid.SelectedObject = _trip;
+                _defaultEnd = null;
+                _defaultStart = null;
+            }
+        }
 
+        private void SetNewTrip()
+        {
+            Title = "Add a new fishing trip";
+            if (GPXFile != null)
+            {
+                _oldArriveDate = GPXFile.DateRangeEnd.AddMinutes(-1);
+                _oldDepartDate = GPXFile.DateRangeStart.AddMinutes(1);
+            }
+            else
+            {
+                _oldArriveDate = DateTime.Now;
+                _oldDepartDate = DateTime.Now;
+            }
+
+            _trip = new TripEdited(GPS, DeviceID);
+            _trip.TripID = TripID;
+
+            if (_defaultEnd != null && _defaultStart != null)
+            {
+                _trip.DateTimeDeparture = (DateTime)_defaultStart;
+                _trip.DateTimeArrival = (DateTime)_defaultEnd;
+            }
+            else
+            {
+                _trip.DateTimeArrival = _oldArriveDate;
+                _trip.DateTimeDeparture = _oldDepartDate;
+            }
+
+            _trip.VesselName = VesselName;
+            _trip.OperatorName = OperatorName;
+            if (GearCode != null && GearCode.Length > 0)
+            {
+                _trip.GearCode = GearCode;
+            }
+            labelTitle.Content = "Details of new fishing trip";
+            PropertyGrid.SelectedObject = _trip;
+        }
         public int TripID { get; set; }
         private void OnWindowLoaded(object sender, RoutedEventArgs e)
         {
             Title = "Details of fishing trip";
             if(IsNew)
             {
-                Title = "Add a new fishing trip";
-                if (GPXFile != null)
-                {
-                    _oldArriveDate = GPXFile.DateRangeEnd.AddMinutes(-1);
-                    _oldDepartDate = GPXFile.DateRangeStart.AddMinutes(1);
-                }
-                else
-                {
-                    _oldArriveDate = DateTime.Now;
-                    _oldDepartDate = DateTime.Now;
-                }
-                _trip = new TripEdited(GPS,DeviceID);
-                _trip.TripID = TripID;
-                _trip.DateTimeArrival = _oldArriveDate;
-                _trip.DateTimeDeparture = _oldDepartDate;
-                _trip.VesselName = VesselName;
-                _trip.OperatorName = OperatorName;
-                if(GearCode.Length>0)
-                {
-                    _trip.GearCode = GearCode;
-                }
-                labelTitle.Content = "Details of new fishing trip";
+                SetNewTrip();
             }
             else
             {
-                _trip = new TripEdited( Entities.TripViewModel.GetTrip(TripID));
-                labelTitle.Content = $"Details of fishing trip from {_trip.DateTimeDeparture.ToString("yyyy-MMM-dd")}";
+                ShowTripDetails();
+                
             }
 
-            PropertyGrid.SelectedObject = _trip;
+            
             PropertyGrid.NameColumnWidth = 200;
 
             PropertyGrid.PropertyDefinitions.Add(new PropertyDefinition { Name = "OperatorName", DisplayName = "Name of operator", DisplayOrder = 1, Description = "Name of operator of fishing boat" });
@@ -216,7 +268,15 @@ namespace GPXManager.views
                     }
                     break;
                 case "buttonCancel":
-                    DialogResult = false;
+                    if (DialogResult != null)
+                    {
+                        DialogResult = false;
+                    }
+                    else
+                    {
+                       Close();
+
+                    }
                     break;
             }
         }

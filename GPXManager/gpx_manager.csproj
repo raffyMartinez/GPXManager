@@ -193,6 +193,9 @@
     <Compile Include="views\GPSBrandModelWindow.xaml.cs">
       <DependentUpon>GPSBrandModelWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="views\GPSIDWindow.xaml.cs">
+      <DependentUpon>GPSIDWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="views\GPXFIlePropertiesWindow.xaml.cs">
       <DependentUpon>GPXFIlePropertiesWindow.xaml</DependentUpon>
     </Compile>
@@ -269,6 +272,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="views\GPSBrandModelWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="views\GPSIDWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -499,6 +506,12 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="question.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\gpx_logo.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="views\gpx_logo.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

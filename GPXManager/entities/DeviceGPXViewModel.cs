@@ -245,7 +245,10 @@ namespace GPXManager.entities
             {
                 ArchivedGPXFiles.Add(gps, new List<GPXFile>());
             }
-            ArchivedGPXFiles[gps].Add(gpxFile);
+            if (ArchivedGPXFiles[gps].FirstOrDefault(t => t.FileName == gpxFile.FileName) == null)
+            {
+                ArchivedGPXFiles[gps].Add(gpxFile);
+            }
         }
         
         public List<WaypointLocalTime>GetWaypoints(GPXFile wayppointFile)
@@ -295,7 +298,7 @@ namespace GPXManager.entities
         {
             var g =  DeviceGPXCollection
                 .Where(t => t.GPS.DeviceID == gps.DeviceID)
-                .Where(t=>t.Filename==fileName)
+                .Where(t=>t.Filename==Path.GetFileName( fileName))
                 .FirstOrDefault();
 
             return g;
@@ -386,6 +389,7 @@ namespace GPXManager.entities
             if (gpx == null)
                 throw new ArgumentNullException("Error: The argument is Null");
             DeviceGPXCollection.Add(gpx);
+            AddToDictionary(gpx.GPS, Entities.GPXFileViewModel.GetFile(gpx.GPS, gpx.Filename));
             return DeviceGPXCollection.Count > oldCount;
         }
 
@@ -464,124 +468,11 @@ namespace GPXManager.entities
         }
         public void SaveDeviceGPXToRepository()
         {
-            if (Entities.WaypointViewModel.Waypoints.Count > 0)
+            foreach(var device in Entities.DetectedDeviceViewModel.DetectedDeviceCollection)
             {
-                foreach (var gps_waypointset in Entities.WaypointViewModel.Waypoints)
+                if (device.GPS != null)
                 {
-                    if (Entities.GPSViewModel.Exists(gps_waypointset.Key))
-                    {
-                        foreach (var item in gps_waypointset.Value)
-                        {
-                            if (item.Waypoints.Count > 0)
-                            {
-                                if (File.Exists(item.FullFileName))
-                                {
-                                    var file = Path.GetFileName(item.FullFileName);
-
-                                    string content;
-                                    using (StreamReader sr = File.OpenText(item.FullFileName))
-                                    {
-                                        content = sr.ReadToEnd();
-
-                                    }
-                                    var dwg = GetDeviceGPX(item.GPS, file);
-                                    GPXFile gpxFile = Entities.GPXFileViewModel.GetFile(item.GPS, item.FileName);
-                                    if (dwg == null)
-                                    {
-                                        AddRecordToRepo(
-                                            new DeviceGPX
-                                            {
-                                                GPS = item.GPS,
-                                                Filename = file,
-                                                GPX = content,
-                                                RowID = NextRecordNumber,
-                                                MD5 = CreateMD5(content),
-                                                GPXType = "waypoint",
-                                                TimeRangeStart = gpxFile.DateRangeStart,
-                                                TimeRangeEnd = gpxFile.DateRangeEnd
-                                            }
-                                        );
-                                    }
-                                    else
-                                    {
-                                        var deviceMD5 = CreateMD5(content);
-                                        if (CreateMD5(dwg.GPX) != deviceMD5)
-                                        {
-                                            UpdateRecordInRepo(new DeviceGPX
-                                            {
-                                                GPS = dwg.GPS,
-                                                GPX = content,
-                                                Filename = dwg.Filename,
-                                                RowID = dwg.RowID,
-                                                MD5 = deviceMD5,
-                                                GPXType = "waypoint",
-                                                TimeRangeStart = gpxFile.DateRangeStart,
-                                                TimeRangeEnd = gpxFile.DateRangeEnd
-                                            });
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            if(Entities.TrackViewModel.Tracks.Count>0)
-            {
-                foreach(var track_set in Entities.TrackViewModel.Tracks)
-                {
-                    if(Entities.GPSViewModel.Exists(track_set.Key))
-                    {
-                        foreach (var track in track_set.Value)
-                        {
-                            if (File.Exists(track.FullFileName))
-                            {
-                                var file = Path.GetFileName(track.FullFileName);
-                                string content;
-                                using (StreamReader sr = File.OpenText(track.FullFileName))
-                                {
-                                    content = sr.ReadToEnd();
-                                }
-                                var dwg = GetDeviceGPX(track.GPS, file);
-                                var gpxFile = Entities.GPXFileViewModel.GetFile(track.GPS, track.FileName);
-                                if (dwg == null)
-                                {
-                                    AddRecordToRepo(
-                                        new DeviceGPX
-                                        {
-                                            GPS = track.GPS,
-                                            Filename = file,
-                                            GPX = content,
-                                            RowID = NextRecordNumber,
-                                            MD5 = CreateMD5(content),
-                                            GPXType = "track",
-                                            TimeRangeStart = gpxFile.DateRangeStart,
-                                            TimeRangeEnd = gpxFile.DateRangeEnd
-                                        }
-                                    );
-                                }
-                                else
-                                {
-                                    var deviceMD5 = CreateMD5(content);
-                                    if (CreateMD5(dwg.GPX) != deviceMD5)
-                                    {
-                                        UpdateRecordInRepo(new DeviceGPX
-                                        {
-                                            GPS = dwg.GPS,
-                                            GPX = content,
-                                            Filename = dwg.Filename,
-                                            RowID = dwg.RowID,
-                                            MD5 = deviceMD5,
-                                            GPXType = "track",
-                                            TimeRangeStart = gpxFile.DateRangeStart,
-                                            TimeRangeEnd = gpxFile.DateRangeEnd
-                                        });
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    SaveDeviceGPXToRepository(device);
                 }
             }
         }
