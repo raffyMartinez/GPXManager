@@ -16,6 +16,7 @@ namespace GPXManager.entities
     public class GPSViewModel
     {
         private bool _gpsRemovedByEject;
+        private bool _addToCollectionOnly;
         public ObservableCollection<GPS> GPSCollection { get; set; }
         private GPSRepository GPSes { get; set; }
 
@@ -226,9 +227,9 @@ namespace GPXManager.entities
             return CurrentEntity;
 
         }
-        public GPS GetGPS(string code)
+        public GPS GetGPS(string deviceID)
         {
-            CurrentEntity = GPSCollection.FirstOrDefault(n => n.Code == code);
+            CurrentEntity = GPSCollection.FirstOrDefault(n => n.DeviceID == deviceID);
             return CurrentEntity;
 
         }
@@ -240,9 +241,16 @@ namespace GPXManager.entities
                     {
                         int newIndex = e.NewStartingIndex;
                         GPS newGPS = GPSCollection[newIndex];
-                        if (GPSes.Add(newGPS))
+                        if (_addToCollectionOnly)
                         {
                             CurrentEntity = newGPS;
+                        }
+                        else
+                        {
+                            if (GPSes.Add(newGPS))
+                            {
+                                CurrentEntity = newGPS;
+                            }
                         }
                     }
                     break;
@@ -272,13 +280,26 @@ namespace GPXManager.entities
         {
             get { return GPSCollection.Count; }
         }
-
+        public bool AddToCollection(GPS gps)
+        {
+            int oldCount = GPSCollection.Count;
+            _addToCollectionOnly = true;
+            if (GetGPS(gps.DeviceID) == null)
+            {
+             
+                GPSCollection.Add(gps);
+            }
+            _addToCollectionOnly = false;
+            return GPSCollection.Count > oldCount;
+        }
         public bool AddRecordToRepo(GPS gps)
         {
             int oldCount = GPSCollection.Count;
             if (gps == null)
                 throw new ArgumentNullException("Error: The argument is Null");
+            
             GPSCollection.Add(gps);
+            
             return GPSCollection.Count > oldCount;
         }
 

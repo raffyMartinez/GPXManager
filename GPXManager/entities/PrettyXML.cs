@@ -12,21 +12,29 @@ namespace GPXManager.entities
     {
         public static string PrettyPrint(string xml)
         {
-            var stringBuilder = new StringBuilder();
-
-            var element = XElement.Parse(xml);
-
-            var settings = new XmlWriterSettings();
-            settings.OmitXmlDeclaration = true;
-            settings.Indent = true;
-            settings.NewLineOnAttributes = true;
-
-            using (var xmlWriter = XmlWriter.Create(stringBuilder, settings))
+            if (xml != null)
             {
-                element.Save(xmlWriter);
+                var stringBuilder = new StringBuilder();
+
+                var element = XElement.Parse(xml);
+
+                var settings = new XmlWriterSettings();
+                settings.OmitXmlDeclaration = true;
+                settings.Indent = true;
+                settings.NewLineOnAttributes = true;
+
+                using (var xmlWriter = XmlWriter.Create(stringBuilder, settings))
+                {
+                    element.Save(xmlWriter);
+                }
+                return stringBuilder.ToString();
+            }
+            else
+            {
+                return "XML is empty";
             }
 
-            return stringBuilder.ToString();
+            
         }
     }
 }

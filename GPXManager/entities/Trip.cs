@@ -14,10 +14,10 @@ namespace GPXManager.entities
     public class TripEdited
     {
         public TripEdited() { }
-        public TripEdited(GPS gps, string deviceID)
+        public TripEdited(GPS gps)
         {
             GPS = gps;
-            DeviceID = deviceID;
+            DeviceID = GPS.DeviceID;
             Track = new Track();
         }
 

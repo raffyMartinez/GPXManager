@@ -149,15 +149,14 @@ namespace GPXManager.entities
 
         public List<FileInfo>GetGPXFilesFromGPS(DetectedDevice device)
         {
-            if (device.GPS != null && device.GPS.Folder.Length > 0)
+            if (device.GPS != null)
             {
-                var gpxFolder = $"{device.Disks[0].Caption }\\{ device.GPS.Folder}";
-                if (Directory.Exists(gpxFolder))
+                var folder = $@"{device.Disks[0].Caption}\{device.GPS.Folder}";
+                if (Directory.Exists(folder))
                 {
-                    return new DirectoryInfo(gpxFolder)
-                        .EnumerateFiles()
-                        .Where(f => f.Extension == ".gpx").ToList();
-
+                    return new DirectoryInfo(folder)
+                      .EnumerateFiles()
+                      .Where(f => f.Extension == ".gpx").ToList();
                 }
             }
             return null;

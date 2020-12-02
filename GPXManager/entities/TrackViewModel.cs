@@ -35,6 +35,20 @@ namespace GPXManager.entities
                             trk.FileName = Path.GetFileName(fileName);
                             trk.IsRoute = false;
                             trk.Read(reader);
+
+                            if (!Tracks.ContainsKey(gps))
+                            {
+                                Tracks.Add(gps, new List<Track>());
+                                Tracks[gps].Add(trk);
+                            }
+                            else
+                            {
+                                if (Tracks[gps].Where(t => t.Name == trk.Name).FirstOrDefault() == null)
+                                {
+                                    Tracks[gps].Add(trk);
+                                }
+                            }
+
                             trackList.Add(trk);
                         }
                     }

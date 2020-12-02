@@ -49,7 +49,6 @@ namespace GPXManager.views
         }
 
         public GPS GPS { get; set; }
-        public string DeviceID { get; set; }
         private void OnWindowClosing(object sender, CancelEventArgs e)
         {
             ParentWindow.NotifyEditWindowClosing();
@@ -101,7 +100,7 @@ namespace GPXManager.views
                 _oldDepartDate = DateTime.Now;
             }
 
-            _trip = new TripEdited(GPS, DeviceID);
+            _trip = new TripEdited(GPS);
             _trip.TripID = TripID;
 
             if (_defaultEnd != null && _defaultStart != null)
@@ -236,12 +235,13 @@ namespace GPXManager.views
                             TripID = _trip.TripID,
                             Gear = Entities.GearViewModel.GetGear(_trip.GearCode),
                             OtherGear = _trip.OtherGear,
-                            DeviceID = _trip.DeviceID,
+                            DeviceID = GPS.DeviceID,
                             Track = _trip.Track,
                             Notes = _trip.Notes,
-                            GPXFileName = _trip.Track.FileName
+                            GPXFileName = _trip.Track.FileName,
+                            XML = _trip.Track.XMLString
                         };
-
+                        trip.GPS = _trip.GPS;
                         var result = Entities.TripViewModel.ValidateTrip(trip, IsNew);
                         if (result.ErrorMessage.Length == 0)
                         {

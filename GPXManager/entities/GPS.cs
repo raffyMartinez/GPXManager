@@ -59,8 +59,6 @@ namespace GPXManager.entities
             Brand = brand;
             Model = model;
             Folder = folder;
-            //PNPDeviceID = pnpDeviceId;
-            //VolumeName = volumeName;
         }
 
         [ReadOnly(true)]
@@ -75,19 +73,13 @@ namespace GPXManager.entities
 
         public string Folder { get; set; }
 
-        
-
-        //[ReadOnly(true)]
-        //public string PNPDeviceID { get; set; }
-
-        //public string VolumeName { get; set; }
+       
 
         public DetectedDevice Device{
             get
             {
                 if (_device == null)
                 {
-                    //_device = Entities.DetectedDeviceViewModel.GetDevice(DeviceID);
                     _device = Entities.DetectedDeviceViewModel.GetDevice(DeviceID);
                 }
                 return _device;

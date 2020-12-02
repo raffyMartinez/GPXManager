@@ -144,11 +144,13 @@ namespace GPXManager.entities
 
         public Dictionary<DateTime, List<Trip>> TripArchivesByMonth(GPS gps)
         {
-            return TripCollection
+            var d =  TripCollection
                 .Where(g => g.GPS.DeviceID == gps.DeviceID)
                 .OrderBy(m => m.DateTimeDeparture)
                 .GroupBy(o => o.MonthYear)
                 .ToDictionary(g => g.Key, g => g.ToList());
+
+            return d;
         }
 
         public void MarkAllNotShownInMap()

@@ -304,6 +304,8 @@ namespace GPXManager.entities
             return g;
         }
 
+        
+
         public DeviceGPX GetDeviceGPX(GPS gps)
         {
             return DeviceGPXCollection

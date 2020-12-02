@@ -110,7 +110,7 @@ namespace GPXManager.entities
                                     if (id_count == 1)
                                     {
                                         //dsk.GPSID = Path.GetFileName(gpsIDs[0]);
-                                        device.GPSID = Path.GetFileName(gpsIDs[0]);
+                                        device.GPSID = Path.GetFileNameWithoutExtension(gpsIDs[0]);
                                     }
                                     //else if(id_count==0)
                                     //{
@@ -187,7 +187,9 @@ namespace GPXManager.entities
 
                 DetectedDeviceCollection.Add(device);
                 var diskFileID = device.GPSID;
-                //var gps = Entities.GPSViewModel.GetGPSEx(device.SerialNumber);
+            //var gps = Entities.GPSViewModel.GetGPSEx(device.SerialNumber);
+            if (diskFileID != null)
+            {
                 var gps = Entities.GPSViewModel.GetGPSEx(diskFileID);
                 if (gps != null)
                 {
@@ -199,6 +201,7 @@ namespace GPXManager.entities
                     //    Entities.GPSViewModel.UpdateRecordInRepo(gps);
                     //}
                 }
+            }
             
         }
 
@@ -210,7 +213,7 @@ namespace GPXManager.entities
             int index = 0;
             while (index < DetectedDeviceCollection.Count)
             {
-                if (DetectedDeviceCollection[index].SerialNumber == device.SerialNumber)
+                if (DetectedDeviceCollection[index].DeviceID == device.DeviceID)
                 {
                     DetectedDeviceCollection[index] = device;
                     break;
@@ -219,16 +222,16 @@ namespace GPXManager.entities
             }
         }
 
-        public bool DeleteDeviceFromCollection(string serialNumber)
+        public bool DeleteDeviceFromCollection(string deviceID)
         {
-            if (serialNumber == null)
+            if (deviceID == null)
                 throw new Exception("Serial number cannot be null");
 
             int index = 0;
             int deviceCountBeforeDelete = DetectedDeviceCollection.Count;
             while (index < DetectedDeviceCollection.Count)
             {
-                if (DetectedDeviceCollection[index].SerialNumber == serialNumber)
+                if (DetectedDeviceCollection[index].DeviceID == deviceID)
                 {
                     DetectedDeviceCollection.RemoveAt(index);
                     return deviceCountBeforeDelete > DetectedDeviceCollection.Count;
@@ -242,14 +245,11 @@ namespace GPXManager.entities
         const uint GENERIC_WRITE = 0x40000000;
         const int FILE_SHARE_READ = 0x1;
         const int FILE_SHARE_WRITE = 0x2;
-        //const int FSCTL_LOCK_VOLUME = 0x00090018;
-        //const int FSCTL_DISMOUNT_VOLUME = 0x00090020;
         const int IOCTL_STORAGE_EJECT_MEDIA = 0x2D4808;
-        //const int IOCTL_STORAGE_MEDIA_REMOVAL = 0x002D4804;
         public bool EjectDrive(DetectedDevice device, out string statusMessage)
         {
             var driveLetter = device.Disks[0].Caption.Trim(':');
-            if (DeleteDeviceFromCollection(device.SerialNumber))
+            if (DeleteDeviceFromCollection(device.DeviceID))
             {
                 string path = @"\\.\" + driveLetter + @":";
                 IntPtr handle = CreateFile(path, GENERIC_READ | GENERIC_WRITE,

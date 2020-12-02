@@ -273,7 +273,6 @@ namespace GPXManager
                 ParentWindow = this,
                 IsNew = isNew,
                 TripID = tripID,
-                DeviceID = _deviceIdentifier,
                 GPS = _gps,
                 OperatorName = operatorName,
                 VesselName = vesselName,
@@ -323,7 +322,7 @@ namespace GPXManager
 
         private void AddTrip()
         {
-            var trip = Entities.TripViewModel.GetLastTripOfDevice(_deviceIdentifier);
+            var trip = Entities.TripViewModel.GetLastTripOfDevice(_gpsid);
             if (trip != null)
             {
                 ShowEditTripWindow(isNew: true, Entities.TripViewModel.NextRecordNumber, trip.OperatorName, trip.VesselName, trip.Gear.Code);
@@ -577,7 +576,14 @@ namespace GPXManager
                 })
                 {
                     GPXFile gpxFile = new GPXFile(trip.GPXFileName);
-                    gpxFile.XML = trip.XML;
+                    if (trip.XML == null)
+                    {
+                        //trip.XML = trip.
+                    }
+                    else
+                    {
+                        gpxFile.XML = trip.XML;
+                    }
 
                     gpw.GPXFile = new GPXFile(trip.GPXFileName) { XML = trip.XML };
                     gpw.ShowDialog();
@@ -651,10 +657,21 @@ namespace GPXManager
             }
             root.IsExpanded = true;
 
+
+            var deviceGPSList = Entities.DeviceGPXViewModel.GetAllGPS().OrderBy(t => t.DeviceName).ToList();
+            foreach (var gps in deviceGPSList)
+            {
+                 //gps_root.Items.Add(new TreeViewItem { Header = gps.DeviceName, Tag = gps.DeviceID });
+                Entities.GPSViewModel.AddToCollection(gps);
+            }
+
+
             foreach (var gps in Entities.GPSViewModel.GPSCollection.OrderBy(t => t.DeviceName))
             {
                 gps_root.Items.Add(new TreeViewItem { Header = gps.DeviceName, Tag = gps.DeviceID });
             }
+
+
             if (root.Items.Count > 0)
             {
                 ((TreeViewItem)root.Items[0]).IsSelected = true;
@@ -664,21 +681,22 @@ namespace GPXManager
             {
                 foreach (TreeViewItem gpsItem in gps_root.Items)
                 {
-                    var gps = Entities.GPSViewModel.GetGPSEx(gpsItem.Tag.ToString());
+                    //var gps = Entities.GPSViewModel.GetGPSEx(gpsItem.Tag.ToString());
+                    var gps = deviceGPSList.FirstOrDefault(t => t.DeviceID == gpsItem.Tag.ToString());
                     foreach (var month in Entities.TripViewModel.TripArchivesByMonth(gps).Keys)
                     {
                         string monthName = month.ToString("MMM-yyyy");
                         TreeViewItem tvi = new TreeViewItem { Header = monthName, Tag = "month_archive" };
-                        if (gpsItem.Items.Count == 0)
-                        {
+                        //if (gpsItem.Items.Count == 0)
+                        //{
                             gpsItem.Items.Add(tvi);
-                        }
-                        else if (gpsItem.Items
-                            .OfType<TreeViewItem>()
-                            .Where(t => (string)t.Header == monthName) == null)
-                        {
-                            gpsItem.Items.Add(tvi);
-                        }
+                        //}
+                        //else if (gpsItem.Items
+                        //    .OfType<TreeViewItem>()
+                        //    .Where(t => (string)t.Header == monthName) == null)
+                        //{
+                        //    gpsItem.Items.Add(tvi);
+                        //}
                     }
                     gpsItem.IsExpanded = true;
                 }
@@ -1194,6 +1212,7 @@ namespace GPXManager
                 PropertyGrid.SelectedObject = _gps;
                 SetupDevicePropertyGrid();
                 buttonSave.Visibility = Visibility.Visible;
+                buttonSave.IsEnabled = true;
             }
             else
             {
@@ -1578,12 +1597,14 @@ namespace GPXManager
 
                             case "GPS":
                                 _gps = (GPS)selectedNode.Tag;
+                                _gpsid = _gps.DeviceID;
                                 ShowGPS(_inArchive);
                                 break;
 
                             case "DateTime":
 
                                 _gps = (GPS)((TreeViewItem)selectedNode.Parent).Tag;
+                                _gpsid = _gps.DeviceID;
                                 month_year = (DateTime)selectedNode.Tag;
 
                                 if (!Entities.DeviceGPXViewModel.ArchivedGPXFiles.Keys.Contains(_gps))
@@ -1615,10 +1636,13 @@ namespace GPXManager
                     if (treeNode.Tag.ToString() == "month_archive")
                     {
                         _gps = Entities.GPSViewModel.GetGPSEx(((TreeViewItem)treeNode.Parent).Tag.ToString());
-                        labelTitle.Content = $"Details of trips tracked by GPS for {DateTime.Parse(treeNode.Header.ToString()).ToString("MMMM, yyyy")}";
+                        DateTime month = DateTime.Parse(treeNode.Header.ToString());
+                        labelTitle.Content = $"Details of trips tracked by GPS for {month.ToString("MMMM, yyyy")}";
                         dataGridGPSSummary.Visibility = Visibility.Visible;
                         var gpsTrips = Entities.TripViewModel.TripCollection
                             .Where(t => t.GPS.DeviceID == _gps.DeviceID)
+                            .Where(t=>t.DateTimeDeparture > month)
+                            .Where(t=>t.DateTimeDeparture < month.AddMonths(1))
                             .OrderBy(t => t.DateTimeDeparture).ToList();
                         dataGridGPSSummary.DataContext = gpsTrips;
                     }
@@ -1642,6 +1666,7 @@ namespace GPXManager
                                 dataGridGPSSummary.Visibility = Visibility.Visible;
                                 //dataGridGPSSummary.AutoGenerateColumns = true;
                                 _gps = Entities.GPSViewModel.GetGPSEx(treeNode.Tag.ToString());
+                                
                                 var gpsTrips = Entities.TripViewModel.TripCollection
                                     .Where(t => t.GPS.DeviceID == _gps.DeviceID)
                                     .OrderByDescending(t => t.DateAdded).Take((int)Global.Settings.LatestTripCount).ToList();

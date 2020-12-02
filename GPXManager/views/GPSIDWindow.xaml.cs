@@ -48,7 +48,7 @@ namespace GPXManager.views
                             if (device == null)
                             {
                                 File.Create($@"{DetectedDevice.Disks[0].Caption}\{gpsid}").Dispose();
-                                DetectedDevice.GPSID = gpsid;
+                                DetectedDevice.GPSID = System.IO.Path.GetFileNameWithoutExtension(gpsid);
                             }
                             else
                             {
