@@ -61,7 +61,15 @@ namespace GPXManager
             treeDevices.MouseRightButtonDown += Tree_MouseRightButtonDown;
             treeArchive.MouseRightButtonDown += Tree_MouseRightButtonDown;
         }
+        
 
+
+
+        /// <summary>
+        /// Used for initiating right click menus on the tree
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Tree_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
             ContextMenu cm = new ContextMenu();
@@ -1296,7 +1304,6 @@ namespace GPXManager
         private void ShowGPXFolderLatest(GPS gps)
         {
             gpxPanel.Visibility = Visibility.Visible;
-            buttonGPXDetails.IsEnabled = false;
             _gpxFile = null;
             var tracks = Entities.GPXFileViewModel.LatestTrackFileUsingGPS(gps, (int)Global.Settings.LatestGPXFileCount);
             var wpts = Entities.GPXFileViewModel.LatestWaypointFileUsingGPS(gps, (int)Global.Settings.LatestGPXFileCount);
@@ -1319,7 +1326,6 @@ namespace GPXManager
             labelTitle.Visibility = Visibility.Visible;
             labelTitle.Content = $"GPX files saved in GPS for {DateTime.Parse(month_year).ToString("MMMM, yyyy")}";
             gpxPanel.Visibility = Visibility.Visible;
-            buttonGPXDetails.IsEnabled = false;
             _gpxFile = null;
             if (month_year.Length > 0)
             {
@@ -1490,11 +1496,6 @@ namespace GPXManager
 
         private void OnTreeViewSelectedItemChange(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
-            if (_ignoreTreeItemChange)
-            {
-                _ignoreTreeItemChange = false;
-                return;
-            }
 
             _inDeviceNode = false;
             _gpsid = null;
@@ -1766,6 +1767,7 @@ namespace GPXManager
 
         private void OnDataGridSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+
             LayerSelector = (DataGrid)sender;
             MapWindowManager.TrackGPXFile = null;
             if (MapWindowManager.MapWindowForm != null)
@@ -1856,7 +1858,6 @@ namespace GPXManager
 
                         menuGPXFileLocateTrack.IsEnabled = !_isTrackGPX;
 
-                        buttonGPXDetails.IsEnabled = true;
                         SetGPXFileMenuMapVisibility(_gpxFile.ShownInMap, false);
 
                         MapWindowManager.MapLayersHandler?.ClearAllSelections();
@@ -1939,6 +1940,7 @@ namespace GPXManager
                     }
                     dataGridGPXFiles.Items.Refresh();
                     dataGridGPXFiles.Visibility = Visibility.Visible;
+                    buttonGPXDetails.IsEnabled = dataGridGPXFiles.SelectedItems.Count>0;
                     dataGridGPXFiles.Focus();
                     break;
             }
@@ -2068,6 +2070,7 @@ namespace GPXManager
                     labelTitle.Visibility = Visibility.Hidden;
                     treeArchive.Visibility = Visibility.Collapsed;
                 }
+                buttonGPXDetails.IsEnabled = false;
             }
             else
             {
