@@ -225,8 +225,14 @@ namespace GPXManager.entities.mapping
                         if (sf.CreateNewWithShapeID("", ShpfileType.SHP_POLYLINE))
                         {
                             sf.EditAddField("GPS", FieldType.STRING_FIELD, 1, 1);
+                            sf.EditAddField("Fisher", FieldType.STRING_FIELD, 1, 1);
+                            sf.EditAddField("Vessel", FieldType.STRING_FIELD, 1, 1);
+                            sf.EditAddField("Gear", FieldType.STRING_FIELD, 1, 1);
+                            sf.EditAddField("Departed", FieldType.DATE_FIELD, 1, 1);
+                            sf.EditAddField("Arrived", FieldType.DATE_FIELD, 1, 1);
                             sf.EditAddField("Filename", FieldType.STRING_FIELD, 1, 1);
                             sf.EditAddField("Length", FieldType.DOUBLE_FIELD, 1, 1);
+
                             sf.Key = "trip_track";
                             sf.GeoProjection = globalMapping.GeoProjection;
                             TripMappingManager.TrackShapefile = sf;
@@ -249,6 +255,11 @@ namespace GPXManager.entities.mapping
                 shpIndex = sf.EditAddShape(shp);
                 handles.Add(shpIndex);
                 sf.EditCellValue(sf.FieldIndexByName["GPS"], shpIndex, trip.GPS.DeviceName);
+                sf.EditCellValue(sf.FieldIndexByName["Fisher"], shpIndex, trip.OperatorName);
+                sf.EditCellValue(sf.FieldIndexByName["Vessel"], shpIndex, trip.VesselName);
+                sf.EditCellValue(sf.FieldIndexByName["Departed"], shpIndex, trip.DateTimeDeparture);
+                sf.EditCellValue(sf.FieldIndexByName["Arrived"], shpIndex, trip.DateTimeArrival);
+                sf.EditCellValue(sf.FieldIndexByName["Gear"], shpIndex, trip.Gear);
                 sf.EditCellValue(sf.FieldIndexByName["FileName"], shpIndex, trip.GPXFileName);
                 sf.EditCellValue(sf.FieldIndexByName["Length"], shpIndex, trip.Track.Statistics.Length);
                 counter++;

@@ -303,9 +303,16 @@ namespace GPXManager.entities
 
             return g;
         }
-
         
-
+        public List<GPXFile> ArchivedFilesByGPSByMonth(GPS gps, DateTime month)
+        {
+            return ArchivedGPXFiles[gps]
+                .Where(t => t.DateRangeStart >= month)
+                .Where(t => t.DateRangeEnd <= month.AddMonths(1))
+                .OrderByDescending(t => t.DateRangeStart)
+                .OrderByDescending(t => t.TrackCount)
+                .ToList();
+        }
         public DeviceGPX GetDeviceGPX(GPS gps)
         {
             return DeviceGPXCollection

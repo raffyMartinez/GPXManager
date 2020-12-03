@@ -142,6 +142,27 @@ namespace GPXManager.entities
             get { return TripCollection.Count; }
         }
 
+        public List<Trip>TripsUsingGPSByDate(GPS gps, DateTime date)
+        {
+            return Entities.TripViewModel.TripCollection
+                                .Where(t => t.GPS.DeviceID == gps.DeviceID)
+                                .Where(t => t.DateTimeDeparture.Date == date.Date).ToList();
+        }
+        public List<Trip>LatestTripsUsingGPS(GPS gps, int countLatestTrips=5)
+        {
+            return Entities.TripViewModel.TripCollection
+                .Where(t => t.GPS.DeviceID == gps.DeviceID)
+                .OrderByDescending(t => t.DateAdded)
+                .Take(countLatestTrips).ToList();
+        }
+        public List<Trip>TripsUsingGPSByMonth(GPS gps, DateTime month)
+        {
+            return TripCollection
+                .Where(t => t.GPS.DeviceID == gps.DeviceID)
+                .Where(t => t.DateTimeDeparture > month)
+                .Where(t => t.DateTimeDeparture < month.AddMonths(1))
+                .OrderBy(t => t.DateTimeDeparture).ToList();
+        }
         public Dictionary<DateTime, List<Trip>> TripArchivesByMonth(GPS gps)
         {
             var d =  TripCollection

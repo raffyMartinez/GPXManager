@@ -286,18 +286,6 @@ namespace GPXManager
                 }
                 if ((bool)etw.ShowDialog())
                 {
-                    if (_gpxFile != null)
-                    {
-                        //ShowTripData();
-                        //var parent = ((TreeViewItem)treeDevices.SelectedItem).Parent as TreeViewItem;
-                        //int index = parent.Items.IndexOf((TreeViewItem)treeDevices.SelectedItem);
-                        //((TreeViewItem)parent.Items[index + 1]).IsSelected = true;
-                        //((TreeViewItem)parent.Items[index]).IsSelected = true;
-                    }
-                    //dataGridTrips.ItemsSource = Entities.TripViewModel.GetAllTrips(_deviceSerialNumber);
-                    //dataGridTrips.Items.Refresh();
-                    //buttonDeleteTrip.IsEnabled = false;
-                    //buttonEditTrip.IsEnabled = false;
                     dataGridGPXFiles.Items.Refresh();
                 }
             }
@@ -480,22 +468,6 @@ namespace GPXManager
             }
 
             var datagrid = (DataGrid)LayerSelector;
-            //if (datagrid.SelectedItems.Count > 0)
-            //{
-            //    foreach (Trip item in datagrid.SelectedItems)
-            //    {
-            //        MapWindowManager.MapTrip(item, out h, out handles);
-            //        item.ShapeIndexes = handles;
-            //        item.ShownInMap = showInMap;
-            //    }
-            //}
-
-            //if (_tripWaypoints.Count > 0)
-            //{
-            //    MapWindowManager.MapTripWaypoints(_tripWaypoints, out h, out handles, _gps, _tripWaypoints[0].Trip.GPXFileName);
-            //    MapWindowManager.LabelTripWaypopints();
-
-            //}
             if (datagrid.SelectedItems.Count == 1)
             {
                 List<Trip> trip = new List<Trip>();
@@ -576,15 +548,7 @@ namespace GPXManager
                 })
                 {
                     GPXFile gpxFile = new GPXFile(trip.GPXFileName);
-                    if (trip.XML == null)
-                    {
-                        //trip.XML = trip.
-                    }
-                    else
-                    {
-                        gpxFile.XML = trip.XML;
-                    }
-
+                    gpxFile.XML = trip.XML;
                     gpw.GPXFile = new GPXFile(trip.GPXFileName) { XML = trip.XML };
                     gpw.ShowDialog();
                 }
@@ -661,7 +625,6 @@ namespace GPXManager
             var deviceGPSList = Entities.DeviceGPXViewModel.GetAllGPS().OrderBy(t => t.DeviceName).ToList();
             foreach (var gps in deviceGPSList)
             {
-                 //gps_root.Items.Add(new TreeViewItem { Header = gps.DeviceName, Tag = gps.DeviceID });
                 Entities.GPSViewModel.AddToCollection(gps);
             }
 
@@ -681,7 +644,6 @@ namespace GPXManager
             {
                 foreach (TreeViewItem gpsItem in gps_root.Items)
                 {
-                    //var gps = Entities.GPSViewModel.GetGPSEx(gpsItem.Tag.ToString());
                     var gps = deviceGPSList.FirstOrDefault(t => t.DeviceID == gpsItem.Tag.ToString());
                     foreach (var month in Entities.TripViewModel.TripArchivesByMonth(gps).Keys)
                     {
@@ -822,7 +784,6 @@ namespace GPXManager
                     if (backupCount > 0)
                     {
                         msg = $"{backupCount} {(backupCount == 1 ? "file" : "files")} saved to backup folder in your comnputer";
-                        ;
                     }
                     MessageBox.Show(msg, "GPX Manager", MessageBoxButton.OK, MessageBoxImage.Information);
                     break;
@@ -886,18 +847,6 @@ namespace GPXManager
 
                 case "menuGPXRemoveFromMap":
                     _gpxFile.ShownInMap = false;
-
-                    //if (_gpxFile.TrackCount > 0)
-                    //{
-                    //    ((Shapefile)MapWindowManager.GPXTracksLayer.LayerObject).EditDeleteShape(_gpxFile.ShapeIndexes[0]);
-                    //}
-                    //else
-                    //{
-                    //    foreach (int h in _gpxFile.ShapeIndexes)
-                    //    {
-                    //        ((Shapefile)MapWindowManager.GPXWaypointsLayer.LayerObject).EditDeleteShape(h);
-                    //    }
-                    //}
                     MapWindowManager.MapControl.Redraw();
                     SetGPXFileMenuMapVisibility(false);
                     break;
@@ -1145,13 +1094,6 @@ namespace GPXManager
         {
             foreach (TreeViewItem item in parent.Items)
             {
-                //if (item.Tag.to == "DetectedDevice")
-                //{
-                //    if (((DetectedDevice)item.Tag).PNPDeviceID == ((DetectedDevice)testItem.Tag).PNPDeviceID)
-                //    {
-                //        return true;
-                //    }
-                //}
                 var device = Entities.DetectedDeviceViewModel.GetDevice(testItem.Tag.ToString());
                 if (item.Tag.ToString() == device.PNPDeviceID)
                 {
@@ -1172,7 +1114,6 @@ namespace GPXManager
             PropertyGrid.PropertyDefinitions.Add(new xceedPropertyGrid.PropertyDefinition { Name = "Model", DisplayName = "Model", DisplayOrder = 4, Description = "Model of device" });
             PropertyGrid.PropertyDefinitions.Add(new xceedPropertyGrid.PropertyDefinition { Name = "Folder", DisplayName = "Folder", DisplayOrder = 5, Description = "Folder where GPX files are saved" });
             PropertyGrid.PropertyDefinitions.Add(new xceedPropertyGrid.PropertyDefinition { Name = "DeviceID", DisplayName = "Device ID", DisplayOrder = 6, Description = "Identifier of device" });
-            //PropertyGrid.PropertyDefinitions.Add(new xceedPropertyGrid.PropertyDefinition { Name = "PNPDeviceID", DisplayName = "PNP Device ID", DisplayOrder = 7, Description = "Plug and Play Device ID" });
 
             foreach (xceedPropertyGrid.PropertyItem prp in PropertyGrid.Properties)
             {
@@ -1201,11 +1142,8 @@ namespace GPXManager
             {
                 _gps = new GPS
                 {
-                    //DeviceID = _deviceSerialNumber,
                     DeviceID = _gpsid
-                    //PNPDeviceID = _detectedDevice.PNPDeviceID
                 };
-                //PopertyGrid.Visibility = Visibility.Visible;
 
                 gpsPanel.Visibility = Visibility.Visible;
                 buttonEjectDevice.Visibility = Visibility.Collapsed;
@@ -1355,27 +1293,15 @@ namespace GPXManager
             Entities.GPXFileViewModel.GetFilesFromDevice(device);
         }
 
-        private void ShowGPXFolderLatest(DetectedDevice device, int latestCount = 10)
+        private void ShowGPXFolderLatest(GPS gps)
         {
             gpxPanel.Visibility = Visibility.Visible;
             buttonGPXDetails.IsEnabled = false;
             _gpxFile = null;
+            var tracks = Entities.GPXFileViewModel.LatestTrackFileUsingGPS(gps, (int)Global.Settings.LatestGPXFileCount);
+            var wpts = Entities.GPXFileViewModel.LatestWaypointFileUsingGPS(gps, (int)Global.Settings.LatestGPXFileCount);
 
-            List<GPXFile> tracks = Entities.GPXFileViewModel.GetFiles(device.GPSID)
-                .Where(t => t.TrackCount > 0)
-                .OrderByDescending(t => t.DateRangeStart)
-                .Take(latestCount)
-                .ToList();
-
-            List<GPXFile> waypoints = Entities.GPXFileViewModel.GetFiles(device.GPSID)
-                .Where(t => t.WaypointCount > 0)
-                .OrderByDescending(t => t.DateRangeStart)
-                .Take(latestCount)
-                .ToList();
-
-            PopulateGPXDataGrid(tracks.Union(waypoints).ToList());
-            //dataGridGPXFiles.ItemsSource = tracks.Union(waypoints).ToList();
-            //CurrentDataGrid = dataGridGPXFiles;
+            PopulateGPXDataGrid(tracks.Union(wpts).ToList());
         }
 
         private void PopulateGPXDataGrid(List<GPXFile> gpxFiles)
@@ -1398,23 +1324,18 @@ namespace GPXManager
             if (month_year.Length > 0)
             {
                 PopulateGPXDataGrid(Entities.GPXFileViewModel.GetFiles(device.GPSID, DateTime.Parse(month_year)));
-                //PopulateGPXDataGrid(Entities.GPXFileViewModel.GetFilesEx(device.SerialNumber, DateTime.Parse(month_year)));
-                //dataGridGPXFiles.ItemsSource = Entities.GPXFileViewModel.GetFiles(device.SerialNumber, DateTime.Parse(month_year));
             }
             else
             {
                 PopulateGPXDataGrid(Entities.GPXFileViewModel.GetFiles(device.SerialNumber));
-                //dataGridGPXFiles.ItemsSource = Entities.GPXFileViewModel.GetFiles(device.SerialNumber);
             }
 
-            //CurrentDataGrid = dataGridGPXFiles;
         }
 
         private void ShowGPS(bool fromArchive = false)
         {
             _isNew = false;
             gpsPanel.Visibility = Visibility.Visible;
-            //PropertyGrid.Visibility = Visibility.Visible;
             gpsPanel.Visibility = Visibility.Visible;
             GPSEdited gpsEdited = new GPSEdited(_gps);
             PropertyGrid.SelectedObject = gpsEdited;
@@ -1426,7 +1347,6 @@ namespace GPXManager
             if (fromArchive)
             {
                 buttonEjectDevice.Visibility = Visibility.Collapsed;
-                //buttonSave.Visibility = Visibility.Visible;
                 buttonSave.IsEnabled = false;
                 _oldGPSName = gpsEdited.DeviceName;
                 _oldGPSCode = gpsEdited.Code;
@@ -1436,7 +1356,6 @@ namespace GPXManager
         private void ResetView()
         {
             gpsPanel.Visibility = Visibility.Collapsed;
-            //PropertyGrid.Visibility = Visibility.Collapsed;
             gpxPanel.Visibility = Visibility.Collapsed;
             menuGPXFolder.Visibility = Visibility.Collapsed;
             buttonSave.Visibility = Visibility.Collapsed;
@@ -1469,7 +1388,6 @@ namespace GPXManager
 
         private void ShowTripWaypoints(bool fromGPSSummary = false)
         {
-            //_tripWaypoints = new List<TripWaypoint>();
             if (fromGPSSummary)
             {
                 tripPanel.Children.Remove(stackPanelTripWaypoints);
@@ -1616,12 +1534,8 @@ namespace GPXManager
                                     Entities.DeviceGPXViewModel.RefreshArchivedGPXCollection(_gps);
                                 }
 
-                                List<GPXFile> archivedGPX = Entities.DeviceGPXViewModel.ArchivedGPXFiles[_gps]
-                                    .Where(t => t.DateRangeStart >= month_year)
-                                    .Where(t => t.DateRangeEnd <= month_year.AddMonths(1))
-                                    .OrderByDescending(t => t.DateRangeStart)
-                                    .OrderByDescending(t => t.TrackCount)
-                                    .ToList();
+                                var archivedGPX = Entities.DeviceGPXViewModel.ArchivedFilesByGPSByMonth(_gps, month_year);
+
                                 gpxPanel.Visibility = Visibility.Visible;
                                 dataGridGPXFiles.ItemsSource = archivedGPX;
                                 labelTitle.Content = $"Archived content of GPS for {month_year.ToString("MMMM, yyyy")}";
@@ -1639,12 +1553,8 @@ namespace GPXManager
                         DateTime month = DateTime.Parse(treeNode.Header.ToString());
                         labelTitle.Content = $"Details of trips tracked by GPS for {month.ToString("MMMM, yyyy")}";
                         dataGridGPSSummary.Visibility = Visibility.Visible;
-                        var gpsTrips = Entities.TripViewModel.TripCollection
-                            .Where(t => t.GPS.DeviceID == _gps.DeviceID)
-                            .Where(t=>t.DateTimeDeparture > month)
-                            .Where(t=>t.DateTimeDeparture < month.AddMonths(1))
-                            .OrderBy(t => t.DateTimeDeparture).ToList();
-                        dataGridGPSSummary.DataContext = gpsTrips;
+
+                        dataGridGPSSummary.DataContext = Entities.TripViewModel.TripsUsingGPSByMonth(_gps, month);
                     }
                     else if (treeNode.Tag.ToString() != "root")
                     {
@@ -1664,14 +1574,7 @@ namespace GPXManager
 
                                 labelTitle.Content = $"Details of {Global.Settings.LatestTripCount} latest trips tracked by GPS";
                                 dataGridGPSSummary.Visibility = Visibility.Visible;
-                                //dataGridGPSSummary.AutoGenerateColumns = true;
-                                _gps = Entities.GPSViewModel.GetGPSEx(treeNode.Tag.ToString());
-                                
-                                var gpsTrips = Entities.TripViewModel.TripCollection
-                                    .Where(t => t.GPS.DeviceID == _gps.DeviceID)
-                                    .OrderByDescending(t => t.DateAdded).Take((int)Global.Settings.LatestTripCount).ToList();
-                                dataGridGPSSummary.DataContext = gpsTrips;
-
+                                dataGridGPSSummary.DataContext = Entities.TripViewModel.LatestTripsUsingGPS(_gps, (int)Global.Settings.LatestTripCount);
                                 break;
                         }
                     }
@@ -1718,8 +1621,7 @@ namespace GPXManager
                                 {
                                     RefreshDetectedDevice();
                                 }
-                                ShowGPXFolderLatest(_detectedDevice, (int)Global.Settings.LatestGPXFileCount);
-
+                                ShowGPXFolderLatest(_detectedDevice.GPS);
                                 break;
 
                             case "disk":
@@ -2062,16 +1964,11 @@ namespace GPXManager
                         if (((string)item.Row.ItemArray[gridCol]) == "x")
                         {
                             DateTime tripDate = new DateTime(_tripMonthYear.Year, _tripMonthYear.Month, gridCol - 1);
-                            trips = Entities.TripViewModel.TripCollection
-                                .Where(t => t.GPS.DeviceID == gps.DeviceID)
-                                .Where(t => t.DateTimeDeparture.Date == tripDate.Date).ToList();
+                            trips = Entities.TripViewModel.TripsUsingGPSByDate(gps, tripDate);
                         }
                         else if (((string)item.Row.ItemArray[gridCol]).Length > 0)
                         {
-                            trips = Entities.TripViewModel.TripCollection
-                                 .Where(t => t.GPS.DeviceID == gps.DeviceID)
-                                 .Where(t => t.DateTimeDeparture.Year == _tripMonthYear.Year)
-                                 .Where(t => t.DateTimeDeparture.Month == _tripMonthYear.Month).ToList();
+                            trips = Entities.TripViewModel.TripsUsingGPSByMonth(gps, _tripMonthYear);
                         }
 
                         if (trips.Count == 1)

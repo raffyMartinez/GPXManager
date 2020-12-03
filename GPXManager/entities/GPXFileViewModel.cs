@@ -147,6 +147,23 @@ namespace GPXManager.entities
             get { return GPXFileCollection.Count; }
         }
 
+        public List<GPXFile>LatestTrackFileUsingGPS(GPS gps, int latestCount=5)
+        {
+           return Entities.GPXFileViewModel.GetFiles(gps.DeviceID)
+                .Where(t => t.TrackCount > 0)
+                .OrderByDescending(t => t.DateRangeStart)
+                .Take(latestCount)
+                .ToList();
+        }
+
+        public List<GPXFile> LatestWaypointFileUsingGPS(GPS gps, int latestCount = 5)
+        {
+            return Entities.GPXFileViewModel.GetFiles(gps.DeviceID)
+                 .Where(t => t.WaypointCount > 0)
+                 .OrderByDescending(t => t.DateRangeStart)
+                 .Take(latestCount)
+                 .ToList();
+        }
         public List<FileInfo>GetGPXFilesFromGPS(DetectedDevice device)
         {
             if (device.GPS != null)
