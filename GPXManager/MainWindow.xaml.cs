@@ -2040,7 +2040,6 @@ namespace GPXManager
                 treeArchive.Visibility = Visibility.Visible;
                 ((TreeViewItem)treeArchive.Items[0]).Items.Clear();
                 labelTitle.Content = "Archived GPX files";
-                //var nd = treeArchive.Items.Add(new TreeViewItem { Header = "Archive", Tag = "root" });
                 var nd = treeArchive.Items.Count - 1;
                 var root = (TreeViewItem)treeArchive.Items[nd];
                 root.Tag = "root";
