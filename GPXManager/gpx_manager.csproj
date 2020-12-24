@@ -110,6 +110,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="entities\DetectDeviceEventArg.cs" />
     <Compile Include="entities\ImportGPSData.cs" />
     <Compile Include="entities\mapping\AOI.cs" />
     <Compile Include="entities\DateTimePickerEditor.cs" />

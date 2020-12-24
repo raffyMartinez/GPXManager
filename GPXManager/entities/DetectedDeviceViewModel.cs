@@ -13,6 +13,10 @@ namespace GPXManager.entities
 {
     public class DetectedDeviceViewModel
     {
+
+        public delegate void DetectDeviceHandler(DetectedDeviceViewModel s, DetectDeviceEventArg e);
+        public event DetectDeviceHandler DeviceDetected;
+
         public ObservableCollection<DetectedDevice> DetectedDeviceCollection { get; set; }
         public DetectedDeviceViewModel()
         {
@@ -40,15 +44,24 @@ namespace GPXManager.entities
             return CurrentEntity;
         }
 
+        public string DetectedUSBDeviceScanResult { get; set; }
+
         public int ScanUSBDevices()
         {
+            string detectedDriveName="";
             int deviceCount = 0;
+            string gpsID;
+            bool hasDetectError;
             var drives = new ManagementObjectSearcher("select * from Win32_DiskDrive where InterfaceType='USB'").Get();
             if (drives.Count > 0)
             {
 
                 foreach (ManagementObject drive in drives)
                 {
+                    
+                    gpsID = "";
+                    DetectedUSBDeviceScanResult = "";
+                    hasDetectError = false;
                     if (int.Parse(drive.Properties["Partitions"].Value.ToString()) > 0)
                     {
                         var device = new DetectedDevice
@@ -88,6 +101,7 @@ namespace GPXManager.entities
                                 "'} WHERE AssocClass = Win32_LogicalDiskToPartition").Get())
 
                             {
+                                detectedDriveName = "";
                                 Disk dsk = null;
                                 try
                                 {
@@ -103,15 +117,35 @@ namespace GPXManager.entities
                                         VolumeSerialNumber = disk.Properties["VolumeSerialNumber"].Value.ToString(),
                                         VolumeName = disk.Properties["VolumeName"].Value.ToString()
                                     };
+                                }
+                                catch(Exception ex)
+                                {
+                                    Logger.Log(ex);
+                                    dsk = null;
+                                }
+
+
+                                try
+                                {
 
                                     var gpsIDs = Directory.GetFiles($"{dsk.Caption}", "*.gpsid");
                                     int id_count = gpsIDs.Length;
+                                    detectedDriveName = dsk.Caption;
 
                                     if (id_count == 1)
                                     {
                                         //dsk.GPSID = Path.GetFileName(gpsIDs[0]);
-                                        device.GPSID = Path.GetFileNameWithoutExtension(gpsIDs[0]);
+                                        gpsID=Path.GetFileNameWithoutExtension(gpsIDs[0]);
+                                        device.GPSID = gpsID;
                                     }
+                                    else if(id_count>1)
+                                    {
+                                        hasDetectError = true;
+                                        DetectedUSBDeviceScanResult = $"Multiple gpsids detected in Drive {detectedDriveName}";
+                                        Logger.Log(DetectedUSBDeviceScanResult);
+                                    }
+                                    
+                                }
                                     //else if(id_count==0)
                                     //{
                                     //    throw new Exception("gpsid file is missing");
@@ -120,12 +154,14 @@ namespace GPXManager.entities
                                     //{
                                     //    throw new Exception("Cannot have more than 1 gpsid file");
                                     //}
-                                }
+                                
                                 catch (Exception ex)
                                 {
                                     Logger.Log(ex);
                                     dsk = null;
                                 }
+
+
                                 if (device.Disks == null)
                                 {
                                     device.Disks = new List<Disk>();
@@ -139,6 +175,19 @@ namespace GPXManager.entities
                             AddDevice(device);
                         }
                         deviceCount++;
+                    }
+
+                    if(DeviceDetected!=null)
+                    {
+                        DetectDeviceEventArg e = new DetectDeviceEventArg
+                        {
+                            Message = DetectedUSBDeviceScanResult,
+                            GPSId = gpsID,
+                            HasDetectError = hasDetectError,
+                            DriveName = detectedDriveName
+                        };
+
+                        DeviceDetected(this, e);
                     }
                 }
                 return deviceCount;

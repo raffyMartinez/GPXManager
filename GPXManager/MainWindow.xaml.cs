@@ -49,7 +49,8 @@ namespace GPXManager
         private string _oldGPSCode;
         private EditTripWindow _editTripWindow;
         private string _gpsid;
-        private bool _ignoreTreeItemChange;
+        private bool _archiveTreeExpanded;
+        private Dictionary<string, string> _deviceDetectError = new Dictionary<string, string>();
         public DataGrid CurrentDataGrid { get; set; }
 
         public MainWindow()
@@ -110,6 +111,16 @@ namespace GPXManager
                         m = new MenuItem { Header = "Backup GPX to drive", Name = "menuBackupGPX" };
                         m.Click += OnMenuClick;
                         cm.Items.Add(m);
+
+                        cm.Items.Add(new Separator());
+
+                        m = new MenuItem { Header = "Expand all", Name = "menuExpandAll" };
+                        m.Click += OnMenuClick;
+                        cm.Items.Add(m);
+
+                        m = new MenuItem { Header = "Collapse all", Name = "menuCollapseAll" };
+                        m.Click += OnMenuClick;
+                        cm.Items.Add(m);
                     }
                     else
                     {
@@ -165,6 +176,8 @@ namespace GPXManager
             _cboModel.Name = "cboModel";
             _cboBrand.Name = "cboBrand";
 
+            Entities.DetectedDeviceViewModel.DeviceDetected += OnDeviceDetected;
+
             _cboBrand.SelectionChanged += OnComboSelectionChanged;
             _cboModel.SelectionChanged += OnComboSelectionChanged;
 
@@ -176,8 +189,18 @@ namespace GPXManager
             statusLabel.Content = Global.MDBPath;
         }
 
+        private void OnDeviceDetected(DetectedDeviceViewModel s, DetectDeviceEventArg e)
+        {
+           if(e.HasDetectError)
+            {
+                //MessageBox.Show(e.Message, "USB device detection", MessageBoxButton.OK, MessageBoxImage.Information);
+                _deviceDetectError.Add(e.DriveName, e.Message);
+            }
+        }
+
         private void OnWindowLoaded(object sender, RoutedEventArgs e)
         {
+            _archiveTreeExpanded = true;
             ResetView();
 
             if (Global.AppProceed)
@@ -653,22 +676,16 @@ namespace GPXManager
                 foreach (TreeViewItem gpsItem in gps_root.Items)
                 {
                     var gps = deviceGPSList.FirstOrDefault(t => t.DeviceID == gpsItem.Tag.ToString());
-                    foreach (var month in Entities.TripViewModel.TripArchivesByMonth(gps).Keys)
+                    if (gps != null)
                     {
-                        string monthName = month.ToString("MMM-yyyy");
-                        TreeViewItem tvi = new TreeViewItem { Header = monthName, Tag = "month_archive" };
-                        //if (gpsItem.Items.Count == 0)
-                        //{
+                        foreach (var month in Entities.TripViewModel.TripArchivesByMonth(gps).Keys)
+                        {
+                            string monthName = month.ToString("MMM-yyyy");
+                            TreeViewItem tvi = new TreeViewItem { Header = monthName, Tag = "month_archive" };
                             gpsItem.Items.Add(tvi);
-                        //}
-                        //else if (gpsItem.Items
-                        //    .OfType<TreeViewItem>()
-                        //    .Where(t => (string)t.Header == monthName) == null)
-                        //{
-                        //    gpsItem.Items.Add(tvi);
-                        //}
+                        }
+                        gpsItem.IsExpanded = true;
                     }
-                    gpsItem.IsExpanded = true;
                 }
             }
 
@@ -964,6 +981,7 @@ namespace GPXManager
                 _inArchive = true;
                 HideTrees();
                 ResetView();
+                treeRowCalendar.Height = new GridLength(1, GridUnitType.Star);
                 ShowCalendarTree();
             }
             else
@@ -1018,9 +1036,9 @@ namespace GPXManager
         private void ScanUSBDevices()
         {
             _inArchive = false;
-            _ignoreTreeItemChange = true;
             ((TreeViewItem)treeDevices.Items[0]).Items.Clear();
             ResetView();
+            treeRowUSB.Height = new GridLength(1, GridUnitType.Star);
             ConfigureGPXGrid();
             if (ReadUSBDrives())
             {
@@ -1066,7 +1084,6 @@ namespace GPXManager
                             };
                             tvi.Items.Add(subItem);
                         }
-                        //_ignoreTreeItemChange = false;
                     }
                     tvi.IsExpanded = true;
                     TreeViewItem root = (TreeViewItem)treeDevices.Items[0];
@@ -1083,7 +1100,6 @@ namespace GPXManager
                     }
                 }
                 ((TreeViewItem)treeDevices.Items[0]).IsExpanded = true;
-                _ignoreTreeItemChange = false;
             }
         }
 
@@ -1153,6 +1169,7 @@ namespace GPXManager
                     DeviceID = _gpsid
                 };
 
+                gridRowGPS.Height = new GridLength(1, GridUnitType.Star);
                 gpsPanel.Visibility = Visibility.Visible;
                 buttonEjectDevice.Visibility = Visibility.Collapsed;
                 PropertyGrid.SelectedObject = _gps;
@@ -1164,6 +1181,7 @@ namespace GPXManager
             {
                 labelTitle.Content = "A required gpsid file is missing";
                 buttonMakeGPSID.Visibility = Visibility.Visible;
+                gridRowHeader.Height = new GridLength(1, GridUnitType.Star);
             }
         }
 
@@ -1303,6 +1321,7 @@ namespace GPXManager
 
         private void ShowGPXFolderLatest(GPS gps)
         {
+            gridRowGPXFiles.Height = new GridLength(1, GridUnitType.Star);
             gpxPanel.Visibility = Visibility.Visible;
             _gpxFile = null;
             var tracks = Entities.GPXFileViewModel.LatestTrackFileUsingGPS(gps, (int)Global.Settings.LatestGPXFileCount);
@@ -1323,6 +1342,7 @@ namespace GPXManager
 
         private void ShowGPXFolder(DetectedDevice device, string month_year = "")
         {
+            gridRowGPXFiles.Height = new GridLength(1, GridUnitType.Star);
             labelTitle.Visibility = Visibility.Visible;
             labelTitle.Content = $"GPX files saved in GPS for {DateTime.Parse(month_year).ToString("MMMM, yyyy")}";
             gpxPanel.Visibility = Visibility.Visible;
@@ -1340,6 +1360,7 @@ namespace GPXManager
 
         private void ShowGPS(bool fromArchive = false)
         {
+            gridRowGPS.Height = new GridLength(1, GridUnitType.Star);
             _isNew = false;
             gpsPanel.Visibility = Visibility.Visible;
             gpsPanel.Visibility = Visibility.Visible;
@@ -1378,6 +1399,18 @@ namespace GPXManager
             textBlock.Visibility = Visibility.Collapsed;
             buttonEjectDevice.Visibility = Visibility.Visible;
             labelCalendarMonth.Visibility = Visibility.Collapsed;
+
+            treeRowArchive.Height = new GridLength(0);
+            treeRowUSB.Height = new GridLength(0);
+            treeRowCalendar.Height = new GridLength(0);
+
+            gridRowHeader.Height = new GridLength(30);
+            gridRowGPS.Height = new GridLength(0);
+            gridRowCalendar.Height = new GridLength(0);
+            gridRowGPSSummary.Height = new GridLength(0);
+            gridRowGPXFiles.Height = new GridLength(0);
+            gridRowTrips.Height = new GridLength(0);
+            gridRowTripWaypoints.Height = new GridLength(0);
         }
 
         private void ShowTripData()
@@ -1394,24 +1427,25 @@ namespace GPXManager
 
         private void ShowTripWaypoints(bool fromGPSSummary = false)
         {
-            if (fromGPSSummary)
-            {
-                tripPanel.Children.Remove(stackPanelTripWaypoints);
-                if (!panelMain.Children.Contains(stackPanelTripWaypoints))
-                {
-                    panelMain.Children.Add(stackPanelTripWaypoints);
-                    stackPanelTripWaypoints.Margin = new Thickness(10);
-                }
-            }
-            else
-            {
-                if (panelMain.Children.Contains(stackPanelTripWaypoints))
-                {
-                    panelMain.Children.Remove(stackPanelTripWaypoints);
-                    tripPanel.Children.Add(stackPanelTripWaypoints);
-                }
-            }
-
+            //if (fromGPSSummary)
+            //{
+            //    tripPanel.Children.Remove(stackPanelTripWaypoints);
+            //    if (!panelMain.Children.Contains(stackPanelTripWaypoints))
+            //    {
+            //        panelMain.Children.Add(stackPanelTripWaypoints);
+            //        stackPanelTripWaypoints.Margin = new Thickness(10);
+            //    }
+            //}
+            //else
+            //{
+            //    if (panelMain.Children.Contains(stackPanelTripWaypoints))
+            //    {
+            //        panelMain.Children.Remove(stackPanelTripWaypoints);
+            //        tripPanel.Children.Add(stackPanelTripWaypoints);
+            //    }
+            //}
+            gridRowGPSSummary.Height = new GridLength(1, GridUnitType.Star);
+            gridRowTripWaypoints.Height = new GridLength(1, GridUnitType.Star);
             stackPanelTripWaypoints.Visibility = Visibility.Visible;
             buttonEditWaypoint.IsEnabled = false;
             buttonDeleteWaypoint.IsEnabled = false;
@@ -1501,9 +1535,14 @@ namespace GPXManager
             _gpsid = null;
             ResetView();
             ResetGrids();
+
+            gridRowHeader.Height = new GridLength(30);
+            labelTitle.Visibility = Visibility.Visible;
+
             switch (((TreeView)sender).Name)
             {
                 case "treeArchive":
+                    treeRowArchive.Height = new GridLength(1, GridUnitType.Star);
                     treeArchive.Visibility = Visibility.Visible;
                     var selectedNode = (TreeViewItem)treeArchive.SelectedItem;
                     if (selectedNode != null)
@@ -1541,20 +1580,24 @@ namespace GPXManager
                                 dataGridGPXFiles.ItemsSource = archivedGPX;
                                 labelTitle.Content = $"Archived content of GPS for {month_year.ToString("MMMM, yyyy")}";
                                 labelTitle.Visibility = Visibility.Visible;
+                                gridRowGPXFiles.Height = new GridLength(1, GridUnitType.Star);
                                 break;
                         }
                     }
                     break;
 
                 case "treeCalendar":
+                    
+                    treeRowCalendar.Height = new GridLength(1, GridUnitType.Star);
                     var treeNode = (TreeViewItem)e.NewValue;
                     if (treeNode.Tag.ToString() == "month_archive")
                     {
                         _gps = Entities.GPSViewModel.GetGPSEx(((TreeViewItem)treeNode.Parent).Tag.ToString());
                         DateTime month = DateTime.Parse(treeNode.Header.ToString());
                         labelTitle.Content = $"Details of trips tracked by GPS for {month.ToString("MMMM, yyyy")}";
+                     
+                        gridRowGPSSummary.Height = new GridLength(1, GridUnitType.Star);
                         dataGridGPSSummary.Visibility = Visibility.Visible;
-
                         dataGridGPSSummary.DataContext = Entities.TripViewModel.TripsUsingGPSByMonth(_gps, month);
                     }
                     else if (treeNode.Tag.ToString() != "root")
@@ -1565,6 +1608,8 @@ namespace GPXManager
                                 labelTitle.Content = "Calendar of tracked fishing operations by GPS";
                                 _tripMonthYear = (DateTime)(treeNode).Tag;
                                 var tripCalendarVM = new TripCalendarViewModel(_tripMonthYear);
+                                gridRowHeader.Height = new GridLength(60);
+                                gridRowCalendar.Height = new GridLength(1, GridUnitType.Star);
                                 dataGridCalendar.Visibility = Visibility.Visible;
                                 dataGridCalendar.DataContext = tripCalendarVM.DataTable;
                                 labelCalendarMonth.Visibility = Visibility.Visible;
@@ -1572,17 +1617,22 @@ namespace GPXManager
                                 break;
 
                             case "Trips by GPS":
-
+                                _gps = Entities.GPSViewModel.GetGPSEx(treeNode.Tag.ToString());
                                 labelTitle.Content = $"Details of {Global.Settings.LatestTripCount} latest trips tracked by GPS";
+                                gridRowGPSSummary.Height = new GridLength(1, GridUnitType.Star);
                                 dataGridGPSSummary.Visibility = Visibility.Visible;
                                 dataGridGPSSummary.DataContext = Entities.TripViewModel.LatestTripsUsingGPS(_gps, (int)Global.Settings.LatestTripCount);
                                 break;
+                            default:
+                                ShowGPS();
+                                break;
                         }
                     }
+
                     break;
 
                 case "treeDevices":
-
+                    treeRowUSB.Height = new GridLength(1, GridUnitType.Star);
                     if (e.NewValue != null)
                     {
                         var tag = ((TreeViewItem)e.NewValue).Tag.ToString();
@@ -2035,6 +2085,7 @@ namespace GPXManager
             {
                 _inArchive = true;
                 ResetView();
+                treeRowArchive.Height = new GridLength(1, GridUnitType.Star);
                 HideTrees();
                 ConfigureGPXGrid(false);
                 treeArchive.Visibility = Visibility.Visible;
@@ -2058,7 +2109,7 @@ namespace GPXManager
                     {
                         gpsNode.Items.Add(new TreeViewItem { Header = month.ToString("MMM, yyyy"), Tag = new DateTime(month.Year, month.Month, 1) });
                     }
-                    gpsNode.IsExpanded = true;
+                    gpsNode.IsExpanded = _archiveTreeExpanded;
                 }
 
                 root.IsExpanded = true;
