@@ -1417,6 +1417,7 @@ namespace GPXManager
         {
             dataGridTrips.ItemsSource = Entities.TripViewModel.GetAllTrips(_deviceIdentifier);
             dataGridTrips.IsReadOnly = true;
+            gridRowTrips.Height = new GridLength(1, GridUnitType.Star);
             tripPanel.Visibility = Visibility.Visible;
             stackPanelTripWaypoints.Visibility = Visibility.Collapsed;
             buttonDeleteTrip.IsEnabled = false;
@@ -1444,8 +1445,19 @@ namespace GPXManager
             //        tripPanel.Children.Add(stackPanelTripWaypoints);
             //    }
             //}
-            gridRowGPSSummary.Height = new GridLength(1, GridUnitType.Star);
+            if(fromGPSSummary)
+            {
+                gridRowGPSSummary.Height = new GridLength(1, GridUnitType.Star);
+
+            }
+            else
+            {
+                gridRowTrips.Height = new GridLength(1, GridUnitType.Star);
+            }
             gridRowTripWaypoints.Height = new GridLength(1, GridUnitType.Star);
+            gridRowHeader.Height = new GridLength(30);
+
+
             stackPanelTripWaypoints.Visibility = Visibility.Visible;
             buttonEditWaypoint.IsEnabled = false;
             buttonDeleteWaypoint.IsEnabled = false;
@@ -1532,6 +1544,7 @@ namespace GPXManager
         {
 
             _inDeviceNode = false;
+            _gps = null;
             _gpsid = null;
             ResetView();
             ResetGrids();
@@ -1605,6 +1618,7 @@ namespace GPXManager
                         switch (((TreeViewItem)treeNode.Parent).Header)
                         {
                             case "Trip calendar":
+                               
                                 labelTitle.Content = "Calendar of tracked fishing operations by GPS";
                                 _tripMonthYear = (DateTime)(treeNode).Tag;
                                 var tripCalendarVM = new TripCalendarViewModel(_tripMonthYear);

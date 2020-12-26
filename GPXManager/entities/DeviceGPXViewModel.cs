@@ -7,6 +7,9 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.IO;
 using System.Windows;
+using System.Xml;
+using System.Xml.Linq;
+
 
 namespace GPXManager.entities
 {
@@ -420,6 +423,31 @@ namespace GPXManager.entities
             return _success;
         }
 
+        private string AddGPSSourceToGPX(string gpx, GPS gps)
+        {
+            bool hasGPS=false;
+            XmlDocument doc = new XmlDocument();
+            doc.LoadXml(gpx);
+            var nd = doc.GetElementsByTagName("gpx");
+            foreach(XmlNode child in nd[0].ChildNodes)
+            {
+                hasGPS = child.Name == "gps";
+                if(hasGPS)
+                {
+                    break;
+                }
+            }
+            if(!hasGPS)
+            {
+                XmlElement gpsChild = doc.CreateElement("gps", doc.DocumentElement.NamespaceURI);
+                gpsChild.InnerText = gps.DeviceID;
+                nd[0].AppendChild(gpsChild);
+            }
+            return doc.OuterXml;
+
+        }
+
+
         /// <summary>
         /// Saves gpx files in device to database
         /// </summary>
@@ -433,6 +461,7 @@ namespace GPXManager.entities
                 using (StreamReader sr = File.OpenText(file.FullName))
                 {
                     content = sr.ReadToEnd();
+                    content =  AddGPSSourceToGPX(content,device.GPS);
                     var gpxFileName = Path.GetFileName(file.FullName);
                     var dwg = GetDeviceGPX(device.GPS, gpxFileName);
                     GPXFile gpxFile = Entities.GPXFileViewModel.GetFile(device.GPS, gpxFileName);
